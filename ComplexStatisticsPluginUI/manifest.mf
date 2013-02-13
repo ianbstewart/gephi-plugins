@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+OpenIDE-Module: org.gephi.ui.complexstatistics.plugin
+OpenIDE-Module-Localizing-Bundle: org/gephi/ui/complexstatistics/plugin/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+
