@@ -23,7 +23,6 @@ package org.gephi.spreadsimulator;
 import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +36,7 @@ import org.gephi.data.attributes.api.AttributeModel;
 import org.gephi.data.attributes.api.AttributeOrigin;
 import org.gephi.data.attributes.api.AttributeType;
 import org.gephi.data.attributes.api.AttributeValue;
+import org.gephi.dynamic.api.DynamicController;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.GraphController;
 import org.gephi.graph.api.Node;
@@ -81,12 +81,14 @@ public class SimulationImpl implements Simulation {
 	private ProjectController pc;
 	private Workspace[] workspaces;
 	private GraphController gc;
+	private DynamicController dc;
 
 	private List<StopCondition> stopConditions;
 	private List<SimulationDataImpl> simulationDatas;
 	private InitialEventFactoryImpl ieFactory;
 	private ChoiceFactoryImpl cFactory;
 
+	private Double granularity;
 	private long delay;
 	private int simnr;
 	private int count;
@@ -146,10 +148,14 @@ public class SimulationImpl implements Simulation {
 		pc = Lookup.getDefault().lookup(ProjectController.class);
 		workspaces = pc.getCurrentProject().getLookup().lookup(WorkspaceProvider.class).getWorkspaces();
 		gc = Lookup.getDefault().lookup(GraphController.class);
+		dc = Lookup.getDefault().lookup(DynamicController.class);
 
+		granularity = 1.0;
+		
 		stopConditions = new ArrayList<StopCondition>();
 		simulationDatas = new ArrayList<SimulationDataImpl>();
-		simulationDatas.add(new SimulationDataImpl(gc.getModel(workspaces[0]), gc.getModel(workspaces[1])));
+		simulationDatas.add(new SimulationDataImpl(gc.getModel(workspaces[0]), dc.getModel(workspaces[0]),
+				gc.getModel(workspaces[1]), granularity));
 		ieFactory = new InitialEventFactoryImpl();
 		cFactory = new ChoiceFactoryImpl();
 
@@ -197,6 +203,16 @@ public class SimulationImpl implements Simulation {
 		return simulationDatas.get(simnr);
 	}
 
+	@Override
+	public double getGranularity() {
+		return granularity;
+	}
+
+	@Override
+	public void setGranularity(double granularity) {
+		this.granularity = granularity;
+	}
+	
 	@Override
 	public long getDelay() {
 		return delay;
@@ -254,7 +270,8 @@ public class SimulationImpl implements Simulation {
 					node.getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_STATE, nsmap.get(node));
 				if (cancel) {
 					simulationDatas = new ArrayList<SimulationDataImpl>();
-					simulationDatas.add(new SimulationDataImpl(gc.getModel(workspaces[0]), gc.getModel(workspaces[1])));
+					simulationDatas.add(new SimulationDataImpl(gc.getModel(workspaces[0]), dc.getModel(workspaces[0]),
+							gc.getModel(workspaces[1]), granularity));
 					simnr = 0;
 					count = 1;
 					Progress.finish(progressTicket);
@@ -262,7 +279,8 @@ public class SimulationImpl implements Simulation {
 				}
 				nextSim = false;
 				if (simnr < count - 1)
-					simulationDatas.add(new SimulationDataImpl(gc.getModel(workspaces[0]), gc.getModel(workspaces[1])));
+					simulationDatas.add(new SimulationDataImpl(gc.getModel(workspaces[0]), dc.getModel(workspaces[0]),
+							gc.getModel(workspaces[1]), granularity));
 				Progress.progress(progressTicket, simnr);
 			}
 			simnr--;
@@ -303,7 +321,7 @@ public class SimulationImpl implements Simulation {
 
 		SimulationDataImpl simd = simulationDatas.get(simnr);
 		Map<Node, String> newStates = new HashMap<Node, String>();
-		for (Node nmNode : simd.getNetworkModel().getGraph().getNodes()) {
+		for (Node nmNode : simd.getSnapshotGraphForCurrentStep().getNodes()) {
 			simd.setCurrentlyExaminedNode(nmNode);
 			String currentState = (String)nmNode.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_STATE);
 			Node smNode = simd.getStateMachineNodeForState(currentState);

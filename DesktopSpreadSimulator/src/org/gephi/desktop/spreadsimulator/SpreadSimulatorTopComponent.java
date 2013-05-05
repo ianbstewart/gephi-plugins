@@ -89,6 +89,8 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 					removeSCButton.setEnabled(false);
 					fireSCSButton.setEnabled(true);
 					fireRSButton.setEnabled(true);
+					granularityFormattedTextField.setText(simulation.getGranularity() + "");
+					granularityFormattedTextField.setEnabled(true);
 					delayFormattedTextField.setText(simulation.getDelay() + "");
 					delayFormattedTextField.setEnabled(true);
 					simcount = 1;
@@ -117,6 +119,9 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 					fireSCSButton.setEnabled(true);
 					fireRSButton.setEnabled(true);
 					stopButton.setEnabled(false);
+					granularityFormattedTextField.setEnabled(simcount > 1 && !simulation.isFinished()
+															|| simulation.getSimulationData().getCurrentStep() == 0);
+					delayFormattedTextField.setEnabled(true);
 					simcountFormattedTextField.setEnabled(!simulation.isFinished());
 					startButton.setEnabled(!simulation.isFinished());
 					nextStepButton.setEnabled(simcount == 1 && !simulation.isFinished());
@@ -129,10 +134,11 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 					removeSCButton.setEnabled(true);
 					fireSCSButton.setEnabled(true);
 					fireRSButton.setEnabled(true);
+					granularityFormattedTextField.setEnabled(simcount == 1 && simulation.getSimulationData().getCurrentStep() == 0);
 					simcountFormattedTextField.setEnabled(true);
 					stopButton.setEnabled(false);
 					startButton.setEnabled(true);
-					previousStepButton.setEnabled(simulation.getSimulationData().getCurrentStep() > 0);
+					previousStepButton.setEnabled(simcount == 1 && simulation.getSimulationData().getCurrentStep() > 0);
 					nextStepButton.setEnabled(simcount == 1);
 				}
 				else if (event.is(EventType.NEXT_STEP)) {
@@ -140,6 +146,8 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 					removeSCButton.setEnabled(simulation.isCancelled());
 					fireSCSButton.setEnabled(simulation.isCancelled());
 					fireRSButton.setEnabled(simulation.isCancelled());
+					granularityFormattedTextField.setEnabled(simulation.isCancelled() && simulation.getSimulationData().getCurrentStep() == 0);
+					delayFormattedTextField.setEnabled(simulation.isCancelled());
 					simcountFormattedTextField.setEnabled(simulation.isCancelled());
 					stopButton.setEnabled(!simulation.isCancelled());
 					startButton.setEnabled(simulation.isCancelled());
@@ -153,6 +161,8 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 					removeSCButton.setEnabled(true);
 					fireSCSButton.setEnabled(true);
 					fireRSButton.setEnabled(true);
+					granularityFormattedTextField.setEnabled(false);
+					delayFormattedTextField.setEnabled(false);
 					simcountFormattedTextField.setEnabled(false);
 					stopButton.setEnabled(false);
 					startButton.setEnabled(false);
@@ -221,8 +231,10 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         simcountFormattedTextField = new javax.swing.JFormattedTextField();
         delayFormattedTextField = new javax.swing.JFormattedTextField();
         delayLabel = new javax.swing.JLabel();
+        granularityLabel = new javax.swing.JLabel();
+        granularityFormattedTextField = new javax.swing.JFormattedTextField();
 
-        setMinimumSize(new java.awt.Dimension(300, 366));
+        setMinimumSize(new java.awt.Dimension(302, 378));
         setLayout(new java.awt.GridBagLayout());
 
         org.openide.awt.Mnemonics.setLocalizedText(fireSCSButton, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.fireSCSButton.text")); // NOI18N
@@ -272,7 +284,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         org.openide.awt.Mnemonics.setLocalizedText(stepLabel, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.stepLabel.text")); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 10);
         add(stepLabel, gridBagConstraints);
@@ -336,7 +348,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 0);
         add(nextStepButton, gridBagConstraints);
@@ -361,7 +373,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 0);
         add(previousStepButton, gridBagConstraints);
@@ -375,7 +387,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 0);
         add(stopButton, gridBagConstraints);
@@ -389,7 +401,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 0);
         add(startButton, gridBagConstraints);
@@ -397,7 +409,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         org.openide.awt.Mnemonics.setLocalizedText(simcountLabel, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.simcountLabel.text")); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 0);
         add(simcountLabel, gridBagConstraints);
@@ -412,18 +424,18 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 10);
         add(simcountFormattedTextField, gridBagConstraints);
 
-        delayFormattedTextField.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("###0"))));
+        delayFormattedTextField.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#"))));
         delayFormattedTextField.setText(org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.delayFormattedTextField.text")); // NOI18N
         delayFormattedTextField.setEnabled(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 10);
@@ -432,10 +444,29 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         org.openide.awt.Mnemonics.setLocalizedText(delayLabel, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.delayLabel.text")); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 0);
         add(delayLabel, gridBagConstraints);
+
+        org.openide.awt.Mnemonics.setLocalizedText(granularityLabel, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.granularityLabel.text")); // NOI18N
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 0);
+        add(granularityLabel, gridBagConstraints);
+
+        granularityFormattedTextField.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#.##"))));
+        granularityFormattedTextField.setText(org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.granularityFormattedTextField.text")); // NOI18N
+        granularityFormattedTextField.setEnabled(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 10);
+        add(granularityFormattedTextField, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
 	private void initButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_initButtonActionPerformed
@@ -506,6 +537,8 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 		removeSCButton.setEnabled(false);
 		fireSCSButton.setEnabled(false);
 		fireRSButton.setEnabled(false);
+		granularityFormattedTextField.setEnabled(false);
+		delayFormattedTextField.setEnabled(false);
 		simcountFormattedTextField.setEnabled(false);
 		startButton.setEnabled(false);
 		nextStepButton.setEnabled(false);
@@ -513,6 +546,9 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 		String sdelay = delayFormattedTextField.getText();
 		long delay = Long.parseLong(sdelay);
 		simulation.setDelay(delay);
+		String sgranularity = granularityFormattedTextField.getText();
+		double granularity = Double.parseDouble(sgranularity);
+		simulation.setGranularity(granularity);
 		StartSimulations(simulation, simcount);
 	}//GEN-LAST:event_startButtonActionPerformed
 
@@ -521,6 +557,8 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 		removeSCButton.setEnabled(false);
 		fireSCSButton.setEnabled(false);
 		fireRSButton.setEnabled(false);
+		granularityFormattedTextField.setEnabled(false);
+		delayFormattedTextField.setEnabled(false);
 		simcountFormattedTextField.setEnabled(false);
 		startButton.setEnabled(false);
 		previousStepButton.setEnabled(false);
@@ -534,6 +572,8 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 		removeSCButton.setEnabled(false);
 		fireSCSButton.setEnabled(false);
 		fireRSButton.setEnabled(false);
+		granularityFormattedTextField.setEnabled(false);
+		delayFormattedTextField.setEnabled(false);
 		simcountFormattedTextField.setEnabled(false);
 		startButton.setEnabled(false);
 		nextStepButton.setEnabled(false);
@@ -541,6 +581,9 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 		String text = delayFormattedTextField.getText();
 		long delay = Long.parseLong(text);
 		simulation.setDelay(delay);
+		text = granularityFormattedTextField.getText();
+		double granularity = Double.parseDouble(text);
+		simulation.setGranularity(granularity);
 		simulation.nextStep();
 	}//GEN-LAST:event_nextStepButtonActionPerformed
 
@@ -550,6 +593,8 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
     private javax.swing.JLabel delayLabel;
     private javax.swing.JButton fireRSButton;
     private javax.swing.JButton fireSCSButton;
+    private javax.swing.JFormattedTextField granularityFormattedTextField;
+    private javax.swing.JLabel granularityLabel;
     private javax.swing.JButton initButton;
     private javax.swing.JButton nextStepButton;
     private javax.swing.JButton previousStepButton;

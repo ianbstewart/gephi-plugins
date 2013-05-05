@@ -20,6 +20,8 @@
  */
 package org.gephi.spreadsimulator.api;
 
+import org.gephi.dynamic.api.DynamicModel;
+import org.gephi.graph.api.Graph;
 import org.gephi.graph.api.GraphModel;
 import org.gephi.graph.api.Node;
 import org.openide.util.NbBundle;
@@ -41,8 +43,14 @@ public interface SimulationData {
 			NbBundle.getMessage(SimulationData.class, "SimulationData.CurrentStateTitle");
 
 	public GraphModel getNetworkModel();
+	
+	public DynamicModel getNetworkDynamicModel();
 
 	public GraphModel getStateMachineModel();
+	
+	public Graph getSnapshotGraphForCurrentStep();
+	
+	public double getGranularity();
 
 	public String getDefaultState();
 
