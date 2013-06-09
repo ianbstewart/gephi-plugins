@@ -46,7 +46,6 @@ import java.text.NumberFormat;
 import org.gephi.data.attributes.api.AttributeModel;
 import org.gephi.graph.api.GraphModel;
 import org.gephi.graph.api.HierarchicalGraph;
-import org.gephi.graph.api.Node;
 import org.gephi.statistics.spi.Statistics;
 import org.gephi.utils.longtask.spi.LongTask;
 import org.gephi.utils.progress.Progress;
@@ -58,7 +57,7 @@ import org.gephi.utils.progress.ProgressTicket;
  * @author Cezary Bartosiak
  */
 public class DisjoinMetricSize1 implements Statistics, LongTask {
-	private boolean cancel = false;
+	private Boolean cancel = false;
 	private ProgressTicket progressTicket;
 	private double value = 0.0;
 
@@ -82,33 +81,8 @@ public class DisjoinMetricSize1 implements Statistics, LongTask {
 		int n = graph.getNodeCount();
 		Progress.start(progressTicket, n * n + n * n + n * n);
 
-		// FloydWarshall algorithm
-		Node[] nodes = graph.getNodes().toArray();
-		double[][] d = new double[n][n];
-		for (int i = 0; i < n && !cancel; ++i)
-			for (int j = 0; j < n && !cancel; ++j) {
-				if (i == j)
-					d[i][j] = 0.0;
-				else if (graph.isAdjacent(nodes[i], nodes[j]))
-					d[i][j] = 1.0;
-				else d[i][j] = Double.POSITIVE_INFINITY;
-				Progress.progress(progressTicket);
-			}
-		for (int k = 0; k < n && !cancel; ++k)
-			for (int i = 0; i < n && !cancel; ++i) {
-				for (int j = 0; j < n && !cancel; ++j)
-					d[i][j] = Math.min(d[i][j], d[i][k] + d[k][j]);
-				Progress.progress(progressTicket);
-			}
-
-		double sum = 0.0;
-		for (int i = 0; i < n && !cancel; ++i)
-			for (int j = 0; j < n && !cancel; ++j) {
-				if (i != j)
-					sum += d[i][j] < Double.POSITIVE_INFINITY ? 1 : 0;
-				Progress.progress(progressTicket);
-			}
-		value = 1 - sum / (double)(n * (n - 1));
+		double[][] d = Utils.floydWarshall(graph, cancel, progressTicket);
+		value = Utils.disjoinMetricSize1(n, d, cancel, progressTicket);
 
 		graph.readUnlock();
 	}
@@ -120,11 +94,11 @@ public class DisjoinMetricSize1 implements Statistics, LongTask {
 	public String getReport() {
 		NumberFormat f = new DecimalFormat("#0.0000");
 
-		String report = "<html><body><h1>Disjoin Metric \"Size\" v1 Report</h1>"
+		String report = "<html><body><h1>Disjoin Metric Size v1 Report</h1>"
 						+ "<hr>"
 						+ "<br>"
 						+ "<br><h2>Results:</h2>"
-						+ "Disjoin Metric \"Size\" v1: " + f.format(value)
+						+ "Disjoin Metric Size v1: " + f.format(value)
 						+ "</body></html>";
 
 		return report;

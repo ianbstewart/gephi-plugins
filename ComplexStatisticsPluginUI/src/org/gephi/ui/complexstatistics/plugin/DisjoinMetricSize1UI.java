@@ -80,11 +80,11 @@ public class DisjoinMetricSize1UI implements StatisticsUI {
 	}
 
 	public String getDisplayName() {
-		return "Disjoin Metric \"Size\" v1";
+		return "Disjoin Metric Size v1";
 	}
 
 	public String getShortDescription() {
-		return "Disjoin Metric \"Size\" v1";
+		return "Disjoin Metric Size v1";
 	}
 
 	public String getCategory() {
