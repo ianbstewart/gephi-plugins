@@ -40,6 +40,10 @@ public interface Simulation extends LongTask {
 
 	public SimulationData getSimulationData();
 
+	public double getGranularity();
+
+	public void setGranularity(double granularity);
+	
 	public long getDelay();
 
 	public void setDelay(long delay);

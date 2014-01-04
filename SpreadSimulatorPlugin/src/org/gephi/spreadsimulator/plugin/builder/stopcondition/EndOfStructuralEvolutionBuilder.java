@@ -18,30 +18,33 @@
  * You should have received a copy of the GNU General Public License
  * along with Gephi.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.gephi.spreadsimulator.plugin.initialevent;
+package org.gephi.spreadsimulator.plugin.builder.stopcondition;
 
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Random;
-import org.gephi.graph.api.Edge;
-import org.gephi.spreadsimulator.api.SimulationData;
-import org.gephi.spreadsimulator.spi.TransitionAlgorithm;
+import org.gephi.spreadsimulator.plugin.stopcondition.EndOfStructuralEvolution;
+import org.gephi.spreadsimulator.spi.StopCondition;
+import org.gephi.spreadsimulator.spi.StopConditionBuilder;
+import org.openide.util.NbBundle;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * 
  *
  * @author Cezary Bartosiak
  */
-public class EmptyAlgorithm implements TransitionAlgorithm {
+@ServiceProvider(service = StopConditionBuilder.class)
+public class EndOfStructuralEvolutionBuilder implements StopConditionBuilder {
 	@Override
-	public Edge tryDoTransition(SimulationData simulationData, Map<Edge, Double> probs) {
-		double p = new Random().nextDouble();
-		double sum = 0.0;
-		for (Entry<Edge, Double> prob : probs.entrySet()) {
-			sum += prob.getValue();
-			if (p <= sum)
-				return prob.getKey();
-		}
-		return null;
+	public String getName() {
+		return NbBundle.getMessage(EndOfStructuralEvolutionBuilder.class, "EndOfStructuralEvolution.name");
+	}
+
+	@Override
+	public StopCondition getStopCondition() {
+		return new EndOfStructuralEvolution();
+	}
+
+	@Override
+	public Class<? extends StopCondition> getStopConditionClass() {
+		return EndOfStructuralEvolution.class;
 	}
 }

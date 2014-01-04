@@ -43,7 +43,7 @@ public class NeighbourhoodAlgorithm implements TransitionAlgorithm {
 	@Override
 	public Edge tryDoTransition(SimulationData simulationData, Map<Edge, Double> probs) {
 		Node ceNode = simulationData.getCurrentlyExaminedNode();
-		for (Node node : simulationData.getNetworkModel().getGraph().getNeighbors(ceNode).toArray()) {
+		for (Node node : simulationData.getSnapshotGraphForCurrentStep().getNeighbors(ceNode).toArray()) {
 			double quality = (Double)node.getNodeData().getAttributes().getValue("Quality");
 			for (String state : states)
 				if (state.equals(node.getNodeData().getAttributes().getValue(simulationData.NM_CURRENT_STATE))) {
