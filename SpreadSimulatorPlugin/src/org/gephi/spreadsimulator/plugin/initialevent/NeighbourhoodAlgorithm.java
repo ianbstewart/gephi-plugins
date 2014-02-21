@@ -20,9 +20,8 @@
  */
 package org.gephi.spreadsimulator.plugin.initialevent;
 
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Random;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Node;
 import org.gephi.spreadsimulator.api.SimulationData;
@@ -43,8 +42,26 @@ public class NeighbourhoodAlgorithm implements TransitionAlgorithm {
 	@Override
 	public Edge tryDoTransition(SimulationData simulationData, Map<Edge, Double> probs) {
 		Node ceNode = simulationData.getCurrentlyExaminedNode();
-		for (Node node : simulationData.getSnapshotGraphForCurrentStep().getNeighbors(ceNode).toArray()) {
-			double quality = (Double)node.getNodeData().getAttributes().getValue("Quality");
+		List<Node> neighbors = new LinkedList<Node>();
+		for (Node node : simulationData.getSnapshotGraphForCurrentStep().getNeighbors(ceNode))
+			neighbors.add(node);
+		if (simulationData.isEdgesActivation()) {
+			int min = simulationData.getMinActivatedEdges();
+			int max = simulationData.getMaxActivatedEdges();
+			int x = new Random().nextInt(max - min + 1) + min;
+			if (x < neighbors.size()) {
+				int y = neighbors.size() - x;
+				Collections.shuffle(neighbors);
+				while (y > 0) {
+					neighbors.remove(0);
+					y--;
+				}
+			}
+		}
+		for (Node node : neighbors) {
+			double quality = 1.0;
+			if (simulationData.isNodesQualities())
+				quality = (Double)node.getNodeData().getAttributes().getValue("Quality");
 			for (String state : states)
 				if (state.equals(node.getNodeData().getAttributes().getValue(simulationData.NM_CURRENT_STATE))) {
 					double p = new Random().nextDouble();

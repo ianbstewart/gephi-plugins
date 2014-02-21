@@ -43,12 +43,13 @@ import org.gephi.spreadsimulator.api.SimulationData;
  * @author Cezary Bartosiak
  */
 public class SimulationDataImpl implements SimulationData {
-	private GraphModel networkModel;
-	private DynamicModel networkDynamicModel;
-	private GraphModel stateMachineModel;
+	private final SimulationImpl simulation;
+	
+	private final GraphModel networkModel;
+	private final DynamicModel networkDynamicModel;
+	private final GraphModel stateMachineModel;
 	
 	private Graph currentSnapshot;
-	private Double granularity;
 	
 	private String defaultState;
 	private List<String> states;
@@ -62,20 +63,21 @@ public class SimulationDataImpl implements SimulationData {
 	private int currentStep;
 	private Node ceNode;
 
-	public SimulationDataImpl(GraphModel networkModel, DynamicModel networkDynamicModel, GraphModel stateMachineModel,
-							  Double granularity) {
+	public SimulationDataImpl(SimulationImpl simulation, GraphModel networkModel, DynamicModel networkDynamicModel,
+																				  GraphModel stateMachineModel) {
+		this.simulation = simulation;
+		
 		this.networkModel = networkModel;
 		this.networkDynamicModel = networkDynamicModel;
 		this.stateMachineModel = stateMachineModel;
 		
 		if (networkDynamicModel.isDynamicGraph()) {
 			DynamicGraph dynamicGraph = networkDynamicModel.createDynamicGraph(networkModel.getGraph());
-			double window = calculateWindow(networkModel.getGraph(), granularity);
+			double window = calculateWindow(networkModel.getGraph(), simulation.getGranularity());
 			double min = networkDynamicModel.getMin();
 			currentSnapshot = dynamicGraph.getSnapshotGraph(min, min + window);
 		}
 		else currentSnapshot = networkModel.getGraph();
-		this.granularity = granularity;
 
 		states = new ArrayList<String>();
 		smNodes = new HashMap<String, Node>();
@@ -126,13 +128,39 @@ public class SimulationDataImpl implements SimulationData {
 	}
 	
 	@Override
+	public boolean isNodesQualities() {
+		return simulation.isNodesQualities();
+	}
+	
+	@Override
+	public boolean isEdgesActivation() {
+		return simulation.isEdgesActivation();
+	}
+	
+	@Override
+	public int getMinActivatedEdges() {
+		return simulation.getMinActivatedEdges();
+	}
+	
+	@Override
+	public int getMaxActivatedEdges() {
+		return simulation.getMaxActivatedEdges();
+	}
+	
+	@Override
 	public double getGranularity() {
-		return granularity;
+		return simulation.getGranularity();
 	}
 
 	@Override
 	public String getDefaultState() {
 		return defaultState;
+	}
+	
+	@Override
+	public int getLatencyForState(String state) {
+		Integer latency = (Integer)smNodes.get(state).getNodeData().getAttributes().getValue(SM_LATENCY);
+		return latency != null ? latency : 0;
 	}
 
 	@Override
@@ -270,7 +298,7 @@ public class SimulationDataImpl implements SimulationData {
 		currentStep++;
 		if (networkDynamicModel.isDynamicGraph()) {
 			DynamicGraph dynamicGraph = networkDynamicModel.createDynamicGraph(networkModel.getGraph());
-			double window = calculateWindow(networkModel.getGraph(), granularity);
+			double window = calculateWindow(networkModel.getGraph(), simulation.getGranularity());
 			double min = networkDynamicModel.getMin();
 			double max = networkDynamicModel.getMax();
 			double low = min + currentStep * window;

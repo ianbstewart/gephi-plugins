@@ -89,6 +89,14 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 					removeSCButton.setEnabled(false);
 					fireSCSButton.setEnabled(true);
 					fireRSButton.setEnabled(true);
+					nodesQualitiesCheckBox.setSelected(simulation.isNodesQualities());
+					nodesQualitiesCheckBox.setEnabled(true);
+					edgesActivationCheckBox.setSelected(simulation.isEdgesActivation());
+					edgesActivationCheckBox.setEnabled(true);
+					minActivatedEdgesSpinner.setValue(simulation.getMinActivatedEdges());
+					minActivatedEdgesSpinner.setEnabled(simulation.isEdgesActivation());
+					maxActivatedEdgesSpinner.setValue(simulation.getMaxActivatedEdges());
+					maxActivatedEdgesSpinner.setEnabled(simulation.isEdgesActivation());
 					granularityFormattedTextField.setText(simulation.getGranularity() + "");
 					granularityFormattedTextField.setEnabled(true);
 					delayFormattedTextField.setText(simulation.getDelay() + "");
@@ -119,6 +127,16 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 					fireSCSButton.setEnabled(true);
 					fireRSButton.setEnabled(true);
 					stopButton.setEnabled(false);
+					nodesQualitiesCheckBox.setEnabled(simcount > 1 && !simulation.isFinished()
+															|| simulation.getSimulationData().getCurrentStep() == 0);
+					edgesActivationCheckBox.setEnabled(simcount > 1 && !simulation.isFinished()
+															|| simulation.getSimulationData().getCurrentStep() == 0);
+					minActivatedEdgesSpinner.setEnabled(simulation.isEdgesActivation()
+														&& simcount > 1 && !simulation.isFinished()
+														|| simulation.getSimulationData().getCurrentStep() == 0);
+					maxActivatedEdgesSpinner.setEnabled(simulation.isEdgesActivation()
+														&& simcount > 1 && !simulation.isFinished()
+														|| simulation.getSimulationData().getCurrentStep() == 0);
 					granularityFormattedTextField.setEnabled(simcount > 1 && !simulation.isFinished()
 															|| simulation.getSimulationData().getCurrentStep() == 0);
 					delayFormattedTextField.setEnabled(true);
@@ -134,6 +152,12 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 					removeSCButton.setEnabled(true);
 					fireSCSButton.setEnabled(true);
 					fireRSButton.setEnabled(true);
+					nodesQualitiesCheckBox.setEnabled(simcount == 1 && simulation.getSimulationData().getCurrentStep() == 0);
+					edgesActivationCheckBox.setEnabled(simcount == 1 && simulation.getSimulationData().getCurrentStep() == 0);
+					minActivatedEdgesSpinner.setEnabled(simulation.isEdgesActivation()
+														&& simcount == 1 && simulation.getSimulationData().getCurrentStep() == 0);
+					maxActivatedEdgesSpinner.setEnabled(simulation.isEdgesActivation()
+														&& simcount == 1 && simulation.getSimulationData().getCurrentStep() == 0);
 					granularityFormattedTextField.setEnabled(simcount == 1 && simulation.getSimulationData().getCurrentStep() == 0);
 					simcountFormattedTextField.setEnabled(true);
 					stopButton.setEnabled(false);
@@ -146,6 +170,12 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 					removeSCButton.setEnabled(simulation.isCancelled());
 					fireSCSButton.setEnabled(simulation.isCancelled());
 					fireRSButton.setEnabled(simulation.isCancelled());
+					nodesQualitiesCheckBox.setEnabled(simulation.isCancelled() && simulation.getSimulationData().getCurrentStep() == 0);
+					edgesActivationCheckBox.setEnabled(simulation.isCancelled() && simulation.getSimulationData().getCurrentStep() == 0);
+					minActivatedEdgesSpinner.setEnabled(simulation.isEdgesActivation()
+														&& simulation.isCancelled() && simulation.getSimulationData().getCurrentStep() == 0);
+					maxActivatedEdgesSpinner.setEnabled(simulation.isEdgesActivation()
+														&& simulation.isCancelled() && simulation.getSimulationData().getCurrentStep() == 0);
 					granularityFormattedTextField.setEnabled(simulation.isCancelled() && simulation.getSimulationData().getCurrentStep() == 0);
 					delayFormattedTextField.setEnabled(simulation.isCancelled());
 					simcountFormattedTextField.setEnabled(simulation.isCancelled());
@@ -161,6 +191,10 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 					removeSCButton.setEnabled(true);
 					fireSCSButton.setEnabled(true);
 					fireRSButton.setEnabled(true);
+					nodesQualitiesCheckBox.setEnabled(false);
+					edgesActivationCheckBox.setEnabled(false);
+					minActivatedEdgesSpinner.setEnabled(false);
+					maxActivatedEdgesSpinner.setEnabled(false);
 					granularityFormattedTextField.setEnabled(false);
 					delayFormattedTextField.setEnabled(false);
 					simcountFormattedTextField.setEnabled(false);
@@ -233,6 +267,12 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         delayLabel = new javax.swing.JLabel();
         granularityLabel = new javax.swing.JLabel();
         granularityFormattedTextField = new javax.swing.JFormattedTextField();
+        nodesQualitiesCheckBox = new javax.swing.JCheckBox();
+        edgesActivationCheckBox = new javax.swing.JCheckBox();
+        minActivatedEdgesLabel = new javax.swing.JLabel();
+        maxActivatedEdgesLabel = new javax.swing.JLabel();
+        minActivatedEdgesSpinner = new javax.swing.JSpinner();
+        maxActivatedEdgesSpinner = new javax.swing.JSpinner();
 
         setMinimumSize(new java.awt.Dimension(302, 378));
         setLayout(new java.awt.GridBagLayout());
@@ -284,7 +324,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         org.openide.awt.Mnemonics.setLocalizedText(stepLabel, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.stepLabel.text")); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 12;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 10);
         add(stepLabel, gridBagConstraints);
@@ -348,7 +388,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 12;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 0);
         add(nextStepButton, gridBagConstraints);
@@ -373,7 +413,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 12;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 0);
         add(previousStepButton, gridBagConstraints);
@@ -387,7 +427,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 0);
         add(stopButton, gridBagConstraints);
@@ -401,7 +441,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 0);
         add(startButton, gridBagConstraints);
@@ -409,7 +449,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         org.openide.awt.Mnemonics.setLocalizedText(simcountLabel, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.simcountLabel.text")); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 0);
         add(simcountLabel, gridBagConstraints);
@@ -424,7 +464,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 10);
@@ -435,7 +475,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         delayFormattedTextField.setEnabled(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 10);
@@ -444,7 +484,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         org.openide.awt.Mnemonics.setLocalizedText(delayLabel, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.delayLabel.text")); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 0);
         add(delayLabel, gridBagConstraints);
@@ -452,7 +492,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         org.openide.awt.Mnemonics.setLocalizedText(granularityLabel, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.granularityLabel.text")); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 0);
         add(granularityLabel, gridBagConstraints);
@@ -462,11 +502,78 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         granularityFormattedTextField.setEnabled(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 10);
         add(granularityFormattedTextField, gridBagConstraints);
+
+        org.openide.awt.Mnemonics.setLocalizedText(nodesQualitiesCheckBox, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.nodesQualitiesCheckBox.text")); // NOI18N
+        nodesQualitiesCheckBox.setEnabled(false);
+        nodesQualitiesCheckBox.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 10);
+        add(nodesQualitiesCheckBox, gridBagConstraints);
+
+        org.openide.awt.Mnemonics.setLocalizedText(edgesActivationCheckBox, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.edgesActivationCheckBox.text")); // NOI18N
+        edgesActivationCheckBox.setEnabled(false);
+        edgesActivationCheckBox.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        edgesActivationCheckBox.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                edgesActivationCheckBoxStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 0);
+        add(edgesActivationCheckBox, gridBagConstraints);
+
+        org.openide.awt.Mnemonics.setLocalizedText(minActivatedEdgesLabel, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.minActivatedEdgesLabel.text")); // NOI18N
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
+        add(minActivatedEdgesLabel, gridBagConstraints);
+
+        org.openide.awt.Mnemonics.setLocalizedText(maxActivatedEdgesLabel, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.maxActivatedEdgesLabel.text")); // NOI18N
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 10, 0, 0);
+        add(maxActivatedEdgesLabel, gridBagConstraints);
+
+        minActivatedEdgesSpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        minActivatedEdgesSpinner.setEnabled(false);
+        minActivatedEdgesSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                minActivatedEdgesSpinnerStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 10);
+        add(minActivatedEdgesSpinner, gridBagConstraints);
+
+        maxActivatedEdgesSpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(100), Integer.valueOf(0), null, Integer.valueOf(1)));
+        maxActivatedEdgesSpinner.setEnabled(false);
+        maxActivatedEdgesSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                maxActivatedEdgesSpinnerStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 10, 0, 10);
+        add(maxActivatedEdgesSpinner, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
 	private void initButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_initButtonActionPerformed
@@ -514,7 +621,32 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 			rsUI.unsetup();
 		rs.removeNodes();
 	}//GEN-LAST:event_fireRSActionPerformed
-
+	
+    private void edgesActivationCheckBoxStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_edgesActivationCheckBoxStateChanged
+        boolean edgesActivation = edgesActivationCheckBox.isSelected();
+		simulation.setEdgesActivation(edgesActivation);
+		minActivatedEdgesSpinner.setEnabled(simulation.isEdgesActivation());
+		maxActivatedEdgesSpinner.setEnabled(simulation.isEdgesActivation());
+    }//GEN-LAST:event_edgesActivationCheckBoxStateChanged
+	
+	private void minActivatedEdgesSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_minActivatedEdgesSpinnerStateChanged
+		int minActivatedEdges = (Integer)minActivatedEdgesSpinner.getValue();
+		int maxActivatedEdges = (Integer)maxActivatedEdgesSpinner.getValue();
+		if (minActivatedEdges > maxActivatedEdges)
+			minActivatedEdges = maxActivatedEdges;
+		simulation.setMinActivatedEdges(minActivatedEdges);
+		minActivatedEdgesSpinner.setValue(simulation.getMinActivatedEdges());
+    }//GEN-LAST:event_minActivatedEdgesSpinnerStateChanged
+	
+    private void maxActivatedEdgesSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_maxActivatedEdgesSpinnerStateChanged
+        int minActivatedEdges = (Integer)minActivatedEdgesSpinner.getValue();
+		int maxActivatedEdges = (Integer)maxActivatedEdgesSpinner.getValue();
+		if (minActivatedEdges > maxActivatedEdges)
+			maxActivatedEdges = minActivatedEdges;
+		simulation.setMaxActivatedEdges(maxActivatedEdges);
+		maxActivatedEdgesSpinner.setValue(simulation.getMaxActivatedEdges());
+    }//GEN-LAST:event_maxActivatedEdgesSpinnerStateChanged
+	
 	private void simcountFormattedTextFieldPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_simcountFormattedTextFieldPropertyChange
 		if (evt.getPropertyName().equals("value"))
 			try {
@@ -537,18 +669,28 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 		removeSCButton.setEnabled(false);
 		fireSCSButton.setEnabled(false);
 		fireRSButton.setEnabled(false);
+		nodesQualitiesCheckBox.setEnabled(false);
+		edgesActivationCheckBox.setEnabled(false);
+		minActivatedEdgesSpinner.setEnabled(false);
+		maxActivatedEdgesSpinner.setEnabled(false);
 		granularityFormattedTextField.setEnabled(false);
 		delayFormattedTextField.setEnabled(false);
 		simcountFormattedTextField.setEnabled(false);
 		startButton.setEnabled(false);
 		nextStepButton.setEnabled(false);
 
-		String sdelay = delayFormattedTextField.getText();
-		long delay = Long.parseLong(sdelay);
-		simulation.setDelay(delay);
-		String sgranularity = granularityFormattedTextField.getText();
-		double granularity = Double.parseDouble(sgranularity);
+		boolean nodesQualities = nodesQualitiesCheckBox.isSelected();
+		boolean edgesActivation = edgesActivationCheckBox.isSelected();
+		int minActivatedEdges = (Integer)minActivatedEdgesSpinner.getValue();
+		int maxActivatedEdges = (Integer)maxActivatedEdgesSpinner.getValue();
+		double granularity = Double.parseDouble(granularityFormattedTextField.getText());
+		long delay = Long.parseLong(delayFormattedTextField.getText());
+		simulation.setNodesQualities(nodesQualities);
+		simulation.setEdgesActivation(edgesActivation);
+		simulation.setMinActivatedEdges(minActivatedEdges);
+		simulation.setMaxActivatedEdges(maxActivatedEdges);
 		simulation.setGranularity(granularity);
+		simulation.setDelay(delay);
 		StartSimulations(simulation, simcount);
 	}//GEN-LAST:event_startButtonActionPerformed
 
@@ -557,6 +699,10 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 		removeSCButton.setEnabled(false);
 		fireSCSButton.setEnabled(false);
 		fireRSButton.setEnabled(false);
+		nodesQualitiesCheckBox.setEnabled(false);
+		edgesActivationCheckBox.setEnabled(false);
+		minActivatedEdgesSpinner.setEnabled(false);
+		maxActivatedEdgesSpinner.setEnabled(false);
 		granularityFormattedTextField.setEnabled(false);
 		delayFormattedTextField.setEnabled(false);
 		simcountFormattedTextField.setEnabled(false);
@@ -572,18 +718,28 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 		removeSCButton.setEnabled(false);
 		fireSCSButton.setEnabled(false);
 		fireRSButton.setEnabled(false);
+		nodesQualitiesCheckBox.setEnabled(false);
+		edgesActivationCheckBox.setEnabled(false);
+		minActivatedEdgesSpinner.setEnabled(false);
+		maxActivatedEdgesSpinner.setEnabled(false);
 		granularityFormattedTextField.setEnabled(false);
 		delayFormattedTextField.setEnabled(false);
 		simcountFormattedTextField.setEnabled(false);
 		startButton.setEnabled(false);
 		nextStepButton.setEnabled(false);
 
-		String text = delayFormattedTextField.getText();
-		long delay = Long.parseLong(text);
-		simulation.setDelay(delay);
-		text = granularityFormattedTextField.getText();
-		double granularity = Double.parseDouble(text);
+		boolean nodesQualities = nodesQualitiesCheckBox.isSelected();
+		boolean edgesActivation = edgesActivationCheckBox.isSelected();
+		int minActivatedEdges = (Integer)minActivatedEdgesSpinner.getValue();
+		int maxActivatedEdges = (Integer)maxActivatedEdgesSpinner.getValue();
+		double granularity = Double.parseDouble(granularityFormattedTextField.getText());
+		long delay = Long.parseLong(delayFormattedTextField.getText());
+		simulation.setNodesQualities(nodesQualities);
+		simulation.setEdgesActivation(edgesActivation);
+		simulation.setMinActivatedEdges(minActivatedEdges);
+		simulation.setMaxActivatedEdges(maxActivatedEdges);
 		simulation.setGranularity(granularity);
+		simulation.setDelay(delay);
 		simulation.nextStep();
 	}//GEN-LAST:event_nextStepButtonActionPerformed
 
@@ -591,12 +747,18 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
     private javax.swing.JButton addSCButton;
     private javax.swing.JFormattedTextField delayFormattedTextField;
     private javax.swing.JLabel delayLabel;
+    private javax.swing.JCheckBox edgesActivationCheckBox;
     private javax.swing.JButton fireRSButton;
     private javax.swing.JButton fireSCSButton;
     private javax.swing.JFormattedTextField granularityFormattedTextField;
     private javax.swing.JLabel granularityLabel;
     private javax.swing.JButton initButton;
+    private javax.swing.JLabel maxActivatedEdgesLabel;
+    private javax.swing.JSpinner maxActivatedEdgesSpinner;
+    private javax.swing.JLabel minActivatedEdgesLabel;
+    private javax.swing.JSpinner minActivatedEdgesSpinner;
     private javax.swing.JButton nextStepButton;
+    private javax.swing.JCheckBox nodesQualitiesCheckBox;
     private javax.swing.JButton previousStepButton;
     private javax.swing.JButton removeSCButton;
     private javax.swing.JComboBox scComboBox;
