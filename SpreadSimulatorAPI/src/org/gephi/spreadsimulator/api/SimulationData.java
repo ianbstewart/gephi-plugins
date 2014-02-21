@@ -33,14 +33,18 @@ import org.openide.util.NbBundle;
  */
 public interface SimulationData {
 	public static final String NM_CURRENT_STATE = "CurrentState";
+	public static final String NM_CURRENT_LATENCY = "CurrentLatency";
 	public static final String SM_STATE_NAME    = "StateName";
 	public static final String SM_DEFAULT_STATE = "DefaultState";
+	public static final String SM_LATENCY = "Latency";
 	public static final String SM_INITIAL_EVENT = "InitialEvent";
 	public static final String SM_CHOICE        = "Choice";
 	public static final String SM_PROBABILITY   = "Probability";
 
 	public static final String NM_CURRENT_STATE_TITLE =
 			NbBundle.getMessage(SimulationData.class, "SimulationData.CurrentStateTitle");
+	public static final String NM_CURRENT_LATENCY_TITLE =
+			NbBundle.getMessage(SimulationData.class, "SimulationData.CurrentLatencyTitle");
 
 	public GraphModel getNetworkModel();
 	
@@ -50,9 +54,19 @@ public interface SimulationData {
 	
 	public Graph getSnapshotGraphForCurrentStep();
 	
+	public boolean isNodesQualities();
+	
+	public boolean isEdgesActivation();
+	
+	public int getMinActivatedEdges();
+	
+	public int getMaxActivatedEdges();
+	
 	public double getGranularity();
 
 	public String getDefaultState();
+	
+	public int getLatencyForState(String state);
 
 	public int getNodesCountInStateAndStep(String state, int step);
 

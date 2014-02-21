@@ -40,6 +40,22 @@ public interface Simulation extends LongTask {
 
 	public SimulationData getSimulationData();
 
+	public boolean isNodesQualities();
+	
+	public void setNodesQualities(boolean nodesQualities);
+	
+	public boolean isEdgesActivation();
+	
+	public void setEdgesActivation(boolean edgesActivation);
+	
+	public int getMinActivatedEdges();
+
+	public void setMinActivatedEdges(int minActivatedEdges);
+	
+	public int getMaxActivatedEdges();
+
+	public void setMaxActivatedEdges(int maxActivatedEdges);
+	
 	public double getGranularity();
 
 	public void setGranularity(double granularity);

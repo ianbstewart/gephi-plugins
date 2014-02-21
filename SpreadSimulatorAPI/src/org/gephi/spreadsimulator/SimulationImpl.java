@@ -37,10 +37,7 @@ import org.gephi.data.attributes.api.AttributeOrigin;
 import org.gephi.data.attributes.api.AttributeType;
 import org.gephi.data.attributes.api.AttributeValue;
 import org.gephi.dynamic.api.DynamicController;
-import org.gephi.graph.api.Edge;
-import org.gephi.graph.api.GraphController;
-import org.gephi.graph.api.Node;
-import org.gephi.graph.api.NodeData;
+import org.gephi.graph.api.*;
 import org.gephi.project.api.ProjectController;
 import org.gephi.project.api.Workspace;
 import org.gephi.project.api.WorkspaceProvider;
@@ -76,7 +73,7 @@ import org.openide.util.lookup.ServiceProvider;
  */
 @ServiceProvider(service = Simulation.class)
 public class SimulationImpl implements Simulation {
-	private SimulationEventManager eventManager;
+	private final SimulationEventManager eventManager;
 
 	private ProjectController pc;
 	private Workspace[] workspaces;
@@ -88,6 +85,10 @@ public class SimulationImpl implements Simulation {
 	private InitialEventFactoryImpl ieFactory;
 	private ChoiceFactoryImpl cFactory;
 
+	private boolean nodesQualities;
+	private boolean edgesActivation;
+	private int minActivatedEdges;
+	private int maxActivatedEdges;
 	private Double granularity;
 	private long delay;
 	private int simnr;
@@ -97,7 +98,7 @@ public class SimulationImpl implements Simulation {
 	private boolean finished;
 	private boolean nextSim;
 
-	private AttributeListener al;
+	private final AttributeListener al;
 
 	public SimulationImpl() {
 		eventManager = new SimulationEventManager();
@@ -118,6 +119,10 @@ public class SimulationImpl implements Simulation {
 								(String)node.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_STATE)));
 						node.getNodeData().setB(simulationDatas.get(simnr).getBForState(
 								(String)node.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_STATE)));
+						node.getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_LATENCY,
+																	simulationDatas.get(simnr).getLatencyForState(
+																			(String)node.getNodeData().getAttributes().
+																					getValue(SimulationData.NM_CURRENT_STATE)));
 					}
 				else if (event.is(AttributeEvent.EventType.SET_VALUE))
 					for (int i = 0; i < event.getData().getTouchedValues().length; ++i) {
@@ -126,15 +131,17 @@ public class SimulationImpl implements Simulation {
 						if (av.getColumn().getId().equals(SimulationData.NM_CURRENT_STATE) && ob instanceof NodeData) {
 							NodeData nodeData = (NodeData)ob;
 							try {
-								if (simulationDatas.size() > simnr)
+								if (simulationDatas.size() > simnr) {
 									nodeData.setR(simulationDatas.get(simnr).getRForState(
 										(String)nodeData.getAttributes().getValue(SimulationData.NM_CURRENT_STATE)));
-								if (simulationDatas.size() > simnr)
 									nodeData.setG(simulationDatas.get(simnr).getGForState(
 										(String)nodeData.getAttributes().getValue(SimulationData.NM_CURRENT_STATE)));
-								if (simulationDatas.size() > simnr)
 									nodeData.setB(simulationDatas.get(simnr).getBForState(
 										(String)nodeData.getAttributes().getValue(SimulationData.NM_CURRENT_STATE)));
+									nodeData.getAttributes().setValue(SimulationData.NM_CURRENT_LATENCY,
+										simulationDatas.get(simnr).getLatencyForState(
+											(String)nodeData.getAttributes().getValue(SimulationData.NM_CURRENT_STATE)));
+								}
 							}
 							catch (Exception ex) { }
 						}
@@ -150,12 +157,16 @@ public class SimulationImpl implements Simulation {
 		gc = Lookup.getDefault().lookup(GraphController.class);
 		dc = Lookup.getDefault().lookup(DynamicController.class);
 
+		nodesQualities = true;
+		edgesActivation = true;
+		minActivatedEdges = 0;
+		maxActivatedEdges = 100;
 		granularity = 1.0;
 		
 		stopConditions = new ArrayList<StopCondition>();
 		simulationDatas = new ArrayList<SimulationDataImpl>();
-		simulationDatas.add(new SimulationDataImpl(gc.getModel(workspaces[0]), dc.getModel(workspaces[0]),
-				gc.getModel(workspaces[1]), granularity));
+		simulationDatas.add(new SimulationDataImpl(this, gc.getModel(workspaces[0]), dc.getModel(workspaces[0]),
+				gc.getModel(workspaces[1])));
 		ieFactory = new InitialEventFactoryImpl();
 		cFactory = new ChoiceFactoryImpl();
 
@@ -171,12 +182,19 @@ public class SimulationImpl implements Simulation {
 		networkAttributeModel.removeAttributeListener(al);
 		networkAttributeModel.addAttributeListener(al);
 
+		String defaultState = simulationDatas.get(simnr).getDefaultState();
 		if (!networkAttributeModel.getNodeTable().hasColumn(SimulationDataImpl.NM_CURRENT_STATE))
 			networkAttributeModel.getNodeTable().addColumn(SimulationDataImpl.NM_CURRENT_STATE,
 					SimulationData.NM_CURRENT_STATE_TITLE, AttributeType.STRING,
-					AttributeOrigin.DATA, simulationDatas.get(simnr).getDefaultState());
+					AttributeOrigin.DATA, defaultState);
 		else for (Node node : gc.getModel(workspaces[0]).getGraph().getNodes())
 			node.getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_STATE, simulationDatas.get(simnr).getDefaultState());
+		if (!networkAttributeModel.getNodeTable().hasColumn(SimulationDataImpl.NM_CURRENT_LATENCY))
+			networkAttributeModel.getNodeTable().addColumn(SimulationDataImpl.NM_CURRENT_LATENCY,
+					SimulationData.NM_CURRENT_LATENCY_TITLE, AttributeType.INT,
+					AttributeOrigin.DATA, simulationDatas.get(simnr).getLatencyForState(defaultState));
+		else for (Node node : gc.getModel(workspaces[0]).getGraph().getNodes())
+			node.getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_LATENCY, simulationDatas.get(simnr).getLatencyForState(defaultState));
 
 		fireSimulationEvent(new SimulationEventImpl(EventType.INIT));
 	}
@@ -203,6 +221,46 @@ public class SimulationImpl implements Simulation {
 		return simulationDatas.get(simnr);
 	}
 
+	@Override
+	public boolean isNodesQualities() {
+		return nodesQualities;
+	}
+	
+	@Override
+	public void setNodesQualities(boolean nodesQualities) {
+		this.nodesQualities = nodesQualities;
+	}
+	
+	@Override
+	public boolean isEdgesActivation() {
+		return edgesActivation;
+	}
+	
+	@Override
+	public void setEdgesActivation(boolean edgesActivation) {
+		this.edgesActivation = edgesActivation;
+	}
+	
+	@Override
+	public int getMinActivatedEdges() {
+		return minActivatedEdges;
+	}
+
+	@Override
+	public void setMinActivatedEdges(int minActivatedEdges) {
+		this.minActivatedEdges = minActivatedEdges;
+	}
+	
+	@Override
+	public int getMaxActivatedEdges() {
+		return maxActivatedEdges;
+	}
+
+	@Override
+	public void setMaxActivatedEdges(int maxActivatedEdges) {
+		this.maxActivatedEdges = maxActivatedEdges;
+	}
+	
 	@Override
 	public double getGranularity() {
 		return granularity;
@@ -253,8 +311,11 @@ public class SimulationImpl implements Simulation {
 			throw new IllegalArgumentException("Count must be greater than 0.");
 
 		Map<Node, String> nsmap = new HashMap<Node, String>();
-		for (Node node : gc.getModel(workspaces[0]).getGraph().getNodes())
+		Map<Node, Integer> nlmap = new HashMap<Node, Integer>();
+		for (Node node : gc.getModel(workspaces[0]).getGraph().getNodes()) {
 			nsmap.put(node, (String)node.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_STATE));
+			nlmap.put(node, (Integer)node.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_LATENCY));
+		}
 
 		if (count == 1)
 			start();
@@ -266,12 +327,14 @@ public class SimulationImpl implements Simulation {
 			for (simnr = 0; simnr < count; ++simnr) {
 				while (!cancel && !nextSim)
 					nextStep();
-				for (Node node : gc.getModel(workspaces[0]).getGraph().getNodes())
+				for (Node node : gc.getModel(workspaces[0]).getGraph().getNodes()) {
 					node.getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_STATE, nsmap.get(node));
+					node.getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_LATENCY, nlmap.get(node));
+				}
 				if (cancel) {
 					simulationDatas = new ArrayList<SimulationDataImpl>();
-					simulationDatas.add(new SimulationDataImpl(gc.getModel(workspaces[0]), dc.getModel(workspaces[0]),
-							gc.getModel(workspaces[1]), granularity));
+					simulationDatas.add(new SimulationDataImpl(this, gc.getModel(workspaces[0]), dc.getModel(workspaces[0]),
+							gc.getModel(workspaces[1])));
 					simnr = 0;
 					count = 1;
 					Progress.finish(progressTicket);
@@ -279,8 +342,8 @@ public class SimulationImpl implements Simulation {
 				}
 				nextSim = false;
 				if (simnr < count - 1)
-					simulationDatas.add(new SimulationDataImpl(gc.getModel(workspaces[0]), dc.getModel(workspaces[0]),
-							gc.getModel(workspaces[1]), granularity));
+					simulationDatas.add(new SimulationDataImpl(this, gc.getModel(workspaces[0]), dc.getModel(workspaces[0]),
+							gc.getModel(workspaces[1])));
 				Progress.progress(progressTicket, simnr);
 			}
 			simnr--;
@@ -321,7 +384,12 @@ public class SimulationImpl implements Simulation {
 
 		SimulationDataImpl simd = simulationDatas.get(simnr);
 		Map<Node, String> newStates = new HashMap<Node, String>();
-		for (Node nmNode : simd.getSnapshotGraphForCurrentStep().getNodes()) {
+		Node[] nodesForCurrentStep = simd.getSnapshotGraphForCurrentStep().getNodes().toArray();
+		List<Node> nodesForCurrentStepFiltered = new ArrayList<Node>();
+		for (Node nmNode : nodesForCurrentStep)
+			if ((Integer)nmNode.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_LATENCY) == 0)
+				nodesForCurrentStepFiltered.add(nmNode);
+		for (Node nmNode : nodesForCurrentStepFiltered) {
 			simd.setCurrentlyExaminedNode(nmNode);
 			String currentState = (String)nmNode.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_STATE);
 			Node smNode = simd.getStateMachineNodeForState(currentState);
@@ -362,6 +430,13 @@ public class SimulationImpl implements Simulation {
 				}
 			}
 			newStates.put(nmNode, state);
+		}
+		for (Node nmNode : nodesForCurrentStep) {
+			Integer latency = (Integer)nmNode.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_LATENCY);
+			latency--;
+			if (latency < 0)
+				latency = 0;
+			nmNode.getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_LATENCY, latency);
 		}
 		for (Entry<Node, String> entry : newStates.entrySet())
 			if (entry.getValue() != null)
