@@ -839,21 +839,9 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 		nextStepButton.setEnabled(false);
 
 		boolean nodesQualities = nodesQualitiesCheckBox.isSelected();
-		boolean nodesLocations = nodesLocationsCheckBox.isSelected();
-		int minLocationChangeInterval = (Integer)minLocationChangeIntervalSpinner.getValue();
-		int maxLocationChangeInterval = (Integer)maxLocationChangeIntervalSpinner.getValue();
-		boolean edgesActivation = edgesActivationCheckBox.isSelected();
-		int minActivatedEdges = (Integer)minActivatedEdgesSpinner.getValue();
-		int maxActivatedEdges = (Integer)maxActivatedEdgesSpinner.getValue();
 		double granularity = Double.parseDouble(granularityFormattedTextField.getText());
 		long delay = Long.parseLong(delayFormattedTextField.getText());
 		simulation.setNodesQualities(nodesQualities);
-		simulation.setNodesLocations(nodesLocations);
-		simulation.setMinLocationChangeInterval(minLocationChangeInterval);
-		simulation.setMaxLocationChangeInterval(maxLocationChangeInterval);
-		simulation.setEdgesActivation(edgesActivation);
-		simulation.setMinActivatedEdges(minActivatedEdges);
-		simulation.setMaxActivatedEdges(maxActivatedEdges);
 		simulation.setGranularity(granularity);
 		simulation.setDelay(delay);
 		StartSimulations(simulation, simcount);
@@ -902,21 +890,9 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 		nextStepButton.setEnabled(false);
 
 		boolean nodesQualities = nodesQualitiesCheckBox.isSelected();
-		boolean nodesLocations = nodesLocationsCheckBox.isSelected();
-		int minLocationChangeInterval = (Integer)minLocationChangeIntervalSpinner.getValue();
-		int maxLocationChangeInterval = (Integer)maxLocationChangeIntervalSpinner.getValue();
-		boolean edgesActivation = edgesActivationCheckBox.isSelected();
-		int minActivatedEdges = (Integer)minActivatedEdgesSpinner.getValue();
-		int maxActivatedEdges = (Integer)maxActivatedEdgesSpinner.getValue();
 		double granularity = Double.parseDouble(granularityFormattedTextField.getText());
 		long delay = Long.parseLong(delayFormattedTextField.getText());
 		simulation.setNodesQualities(nodesQualities);
-		simulation.setNodesLocations(nodesLocations);
-		simulation.setMinLocationChangeInterval(minLocationChangeInterval);
-		simulation.setMaxLocationChangeInterval(maxLocationChangeInterval);
-		simulation.setEdgesActivation(edgesActivation);
-		simulation.setMinActivatedEdges(minActivatedEdges);
-		simulation.setMaxActivatedEdges(maxActivatedEdges);
 		simulation.setGranularity(granularity);
 		simulation.setDelay(delay);
 		simulation.nextStep();
