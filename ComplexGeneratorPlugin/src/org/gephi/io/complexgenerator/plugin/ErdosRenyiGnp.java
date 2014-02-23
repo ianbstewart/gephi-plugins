@@ -60,8 +60,8 @@ public class ErdosRenyiGnp implements Generator {
 		container.setEdgeDefault(EdgeDefault.UNDIRECTED);
 
 		// Timestamps
-		int vt = 0;
-		int et = 1;
+		// int vt = 0;
+		// int et = 1;
 
 		NodeDraft[] nodes = new NodeDraft[n];
 
@@ -69,7 +69,7 @@ public class ErdosRenyiGnp implements Generator {
 		for (int i = 0; i < n && !cancel; ++i) {
 			NodeDraft node = container.factory().newNodeDraft();
 			node.setLabel("Node " + i);
-			node.addTimeInterval(vt + "", n * n + "");
+			// node.addTimeInterval(vt + "", n * n + "");
 			nodes[i] = node;
 			container.addNode(node);
 			Progress.progress(progressTicket);
@@ -77,12 +77,12 @@ public class ErdosRenyiGnp implements Generator {
 
 		// Linking every node with each other with probability p (no self-loops)
 		for (int i = 0; i < n && !cancel; ++i)
-			for (int j =  i + 1; j < n && !cancel; ++j, ++et)
+			for (int j =  i + 1; j < n && !cancel; ++j/* , ++et */)
 				if (random.nextDouble() <= p) {
 					EdgeDraft edge = container.factory().newEdgeDraft();
 					edge.setSource(nodes[i]);
 					edge.setTarget(nodes[j]);
-					edge.addTimeInterval(et + "", n * n + "");
+					// edge.addTimeInterval(et + "", n * n + "");
 					container.addEdge(edge);
 					Progress.progress(progressTicket);
 				}

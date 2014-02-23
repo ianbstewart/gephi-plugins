@@ -64,8 +64,8 @@ public class WattsStrogatzBeta implements Generator {
 		container.setEdgeDefault(EdgeDefault.UNDIRECTED);
 
 		// Timestamps
-		int vt = 1;
-		int et = 1;
+		// int vt = 1;
+		// int et = 1;
 
 		NodeDraft[] nodes = new NodeDraft[N];
 
