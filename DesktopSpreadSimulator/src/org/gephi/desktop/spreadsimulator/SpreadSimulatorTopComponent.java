@@ -4,6 +4,7 @@
  */
 package org.gephi.desktop.spreadsimulator;
 
+import java.awt.event.*;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,14 +16,8 @@ import javax.swing.JFormattedTextField.AbstractFormatterFactory;
 import javax.swing.JPanel;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
-import org.gephi.spreadsimulator.api.RemovalStrategy;
-import org.gephi.spreadsimulator.api.RemovalStrategyUI;
-import org.gephi.spreadsimulator.api.Simulation;
-import org.gephi.spreadsimulator.api.SimulationEvent;
+import org.gephi.spreadsimulator.api.*;
 import org.gephi.spreadsimulator.api.SimulationEvent.EventType;
-import org.gephi.spreadsimulator.api.SimulationListener;
-import org.gephi.spreadsimulator.api.StateChangeStrategy;
-import org.gephi.spreadsimulator.api.StateChangeStrategyUI;
 import org.gephi.spreadsimulator.spi.StopCondition;
 import org.gephi.spreadsimulator.spi.StopConditionBuilder;
 import org.gephi.spreadsimulator.spi.StopConditionUI;
@@ -58,6 +53,8 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 	private StateChangeStrategyUI scsUI;
 	private RemovalStrategy rs;
 	private RemovalStrategyUI rsUI;
+	private LocationChangeStrategy lcs;
+	private LocationChangeStrategyUI lcsUI;
 
 	private int simcount = 1;
 	private Simulation simulation;
@@ -78,6 +75,8 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 		scsUI = Lookup.getDefault().lookup(StateChangeStrategyUI.class);
 		rs = Lookup.getDefault().lookup(RemovalStrategy.class);
 		rsUI = Lookup.getDefault().lookup(RemovalStrategyUI.class);
+		lcs = Lookup.getDefault().lookup(LocationChangeStrategy.class);
+		lcsUI = Lookup.getDefault().lookup(LocationChangeStrategyUI.class);
 
 		simulation = Lookup.getDefault().lookup(Simulation.class);
 		simulation.addSimulationListener(new SimulationListener() {
@@ -89,8 +88,15 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 					removeSCButton.setEnabled(false);
 					fireSCSButton.setEnabled(true);
 					fireRSButton.setEnabled(true);
+					fireLCSButton.setEnabled(simulation.isNodesLocations());
 					nodesQualitiesCheckBox.setSelected(simulation.isNodesQualities());
 					nodesQualitiesCheckBox.setEnabled(true);
+					nodesLocationsCheckBox.setSelected(simulation.isNodesLocations());
+					nodesLocationsCheckBox.setEnabled(true);
+					minLocationChangeIntervalSpinner.setValue(simulation.getMinLocationChangeInterval());
+					minLocationChangeIntervalSpinner.setEnabled(simulation.isNodesLocations());
+					maxLocationChangeIntervalSpinner.setValue(simulation.getMaxLocationChangeInterval());
+					maxLocationChangeIntervalSpinner.setEnabled(simulation.isNodesLocations());
 					edgesActivationCheckBox.setSelected(simulation.isEdgesActivation());
 					edgesActivationCheckBox.setEnabled(true);
 					minActivatedEdgesSpinner.setValue(simulation.getMinActivatedEdges());
@@ -126,9 +132,17 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 					removeSCButton.setEnabled(true);
 					fireSCSButton.setEnabled(true);
 					fireRSButton.setEnabled(true);
-					stopButton.setEnabled(false);
+					fireLCSButton.setEnabled(simulation.isNodesLocations());
 					nodesQualitiesCheckBox.setEnabled(simcount > 1 && !simulation.isFinished()
 															|| simulation.getSimulationData().getCurrentStep() == 0);
+					nodesLocationsCheckBox.setEnabled(simcount > 1 && !simulation.isFinished()
+															|| simulation.getSimulationData().getCurrentStep() == 0);
+					minLocationChangeIntervalSpinner.setEnabled(simulation.isNodesLocations()
+														&& simcount > 1 && !simulation.isFinished()
+														|| simulation.getSimulationData().getCurrentStep() == 0);
+					maxLocationChangeIntervalSpinner.setEnabled(simulation.isNodesLocations()
+														&& simcount > 1 && !simulation.isFinished()
+														|| simulation.getSimulationData().getCurrentStep() == 0);
 					edgesActivationCheckBox.setEnabled(simcount > 1 && !simulation.isFinished()
 															|| simulation.getSimulationData().getCurrentStep() == 0);
 					minActivatedEdgesSpinner.setEnabled(simulation.isEdgesActivation()
@@ -141,6 +155,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 															|| simulation.getSimulationData().getCurrentStep() == 0);
 					delayFormattedTextField.setEnabled(true);
 					simcountFormattedTextField.setEnabled(!simulation.isFinished());
+					stopButton.setEnabled(false);
 					startButton.setEnabled(!simulation.isFinished());
 					nextStepButton.setEnabled(simcount == 1 && !simulation.isFinished());
 				}
@@ -152,7 +167,13 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 					removeSCButton.setEnabled(true);
 					fireSCSButton.setEnabled(true);
 					fireRSButton.setEnabled(true);
+					fireLCSButton.setEnabled(simulation.isNodesLocations());
 					nodesQualitiesCheckBox.setEnabled(simcount == 1 && simulation.getSimulationData().getCurrentStep() == 0);
+					nodesLocationsCheckBox.setEnabled(simcount == 1 && simulation.getSimulationData().getCurrentStep() == 0);
+					minLocationChangeIntervalSpinner.setEnabled(simulation.isNodesLocations()
+														&& simcount == 1 && simulation.getSimulationData().getCurrentStep() == 0);
+					maxLocationChangeIntervalSpinner.setEnabled(simulation.isNodesLocations()
+														&& simcount == 1 && simulation.getSimulationData().getCurrentStep() == 0);
 					edgesActivationCheckBox.setEnabled(simcount == 1 && simulation.getSimulationData().getCurrentStep() == 0);
 					minActivatedEdgesSpinner.setEnabled(simulation.isEdgesActivation()
 														&& simcount == 1 && simulation.getSimulationData().getCurrentStep() == 0);
@@ -170,7 +191,13 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 					removeSCButton.setEnabled(simulation.isCancelled());
 					fireSCSButton.setEnabled(simulation.isCancelled());
 					fireRSButton.setEnabled(simulation.isCancelled());
+					fireLCSButton.setEnabled(simulation.isNodesLocations() && simulation.isCancelled());
 					nodesQualitiesCheckBox.setEnabled(simulation.isCancelled() && simulation.getSimulationData().getCurrentStep() == 0);
+					nodesLocationsCheckBox.setEnabled(simulation.isCancelled() && simulation.getSimulationData().getCurrentStep() == 0);
+					minLocationChangeIntervalSpinner.setEnabled(simulation.isNodesLocations()
+														&& simulation.isCancelled() && simulation.getSimulationData().getCurrentStep() == 0);
+					maxLocationChangeIntervalSpinner.setEnabled(simulation.isNodesLocations()
+														&& simulation.isCancelled() && simulation.getSimulationData().getCurrentStep() == 0);
 					edgesActivationCheckBox.setEnabled(simulation.isCancelled() && simulation.getSimulationData().getCurrentStep() == 0);
 					minActivatedEdgesSpinner.setEnabled(simulation.isEdgesActivation()
 														&& simulation.isCancelled() && simulation.getSimulationData().getCurrentStep() == 0);
@@ -191,7 +218,11 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 					removeSCButton.setEnabled(true);
 					fireSCSButton.setEnabled(true);
 					fireRSButton.setEnabled(true);
+					fireLCSButton.setEnabled(simulation.isNodesLocations());
 					nodesQualitiesCheckBox.setEnabled(false);
+					nodesLocationsCheckBox.setEnabled(false);
+					minLocationChangeIntervalSpinner.setEnabled(false);
+					maxLocationChangeIntervalSpinner.setEnabled(false);
 					edgesActivationCheckBox.setEnabled(false);
 					minActivatedEdgesSpinner.setEnabled(false);
 					maxActivatedEdgesSpinner.setEnabled(false);
@@ -273,8 +304,15 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         maxActivatedEdgesLabel = new javax.swing.JLabel();
         minActivatedEdgesSpinner = new javax.swing.JSpinner();
         maxActivatedEdgesSpinner = new javax.swing.JSpinner();
+        fireLCSButton = new javax.swing.JButton();
+        nodesLocationsCheckBox = new javax.swing.JCheckBox();
+        minLocationChangeIntervalLabel = new javax.swing.JLabel();
+        minLocationChangeIntervalSpinner = new javax.swing.JSpinner();
+        maxLocationChangeIntervalLabel = new javax.swing.JLabel();
+        maxLocationChangeIntervalSpinner = new javax.swing.JSpinner();
 
-        setMinimumSize(new java.awt.Dimension(302, 378));
+        setMinimumSize(new java.awt.Dimension(300, 536));
+        setName(""); // NOI18N
         setLayout(new java.awt.GridBagLayout());
 
         org.openide.awt.Mnemonics.setLocalizedText(fireSCSButton, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.fireSCSButton.text")); // NOI18N
@@ -318,15 +356,15 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 10);
+        gridBagConstraints.insets = new java.awt.Insets(2, 10, 0, 10);
         add(fireRSButton, gridBagConstraints);
 
         org.openide.awt.Mnemonics.setLocalizedText(stepLabel, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.stepLabel.text")); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridy = 16;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 10);
+        gridBagConstraints.insets = new java.awt.Insets(2, 10, 10, 10);
         add(stepLabel, gridBagConstraints);
 
         org.openide.awt.Mnemonics.setLocalizedText(addSCButton, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.addSCButton.text")); // NOI18N
@@ -388,9 +426,9 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridy = 16;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 0);
+        gridBagConstraints.insets = new java.awt.Insets(2, 10, 10, 0);
         add(nextStepButton, gridBagConstraints);
 
         scComboBox.setModel(scComboBoxModel);
@@ -413,9 +451,9 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridy = 16;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 0);
+        gridBagConstraints.insets = new java.awt.Insets(2, 10, 10, 0);
         add(previousStepButton, gridBagConstraints);
 
         org.openide.awt.Mnemonics.setLocalizedText(stopButton, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.stopButton.text")); // NOI18N
@@ -427,7 +465,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridy = 15;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 0);
         add(stopButton, gridBagConstraints);
@@ -441,7 +479,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridy = 15;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 0);
         add(startButton, gridBagConstraints);
@@ -449,9 +487,9 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         org.openide.awt.Mnemonics.setLocalizedText(simcountLabel, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.simcountLabel.text")); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 14;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 0);
+        gridBagConstraints.insets = new java.awt.Insets(2, 10, 0, 0);
         add(simcountLabel, gridBagConstraints);
 
         simcountFormattedTextField.setFormatterFactory(getSimcountFormatterFactory());
@@ -464,10 +502,10 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 14;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 10);
+        gridBagConstraints.insets = new java.awt.Insets(2, 10, 0, 10);
         add(simcountFormattedTextField, gridBagConstraints);
 
         delayFormattedTextField.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#"))));
@@ -475,24 +513,24 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         delayFormattedTextField.setEnabled(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 13;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 10);
+        gridBagConstraints.insets = new java.awt.Insets(2, 10, 0, 10);
         add(delayFormattedTextField, gridBagConstraints);
 
         org.openide.awt.Mnemonics.setLocalizedText(delayLabel, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.delayLabel.text")); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 13;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 0);
+        gridBagConstraints.insets = new java.awt.Insets(2, 10, 0, 0);
         add(delayLabel, gridBagConstraints);
 
         org.openide.awt.Mnemonics.setLocalizedText(granularityLabel, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.granularityLabel.text")); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 12;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 0);
         add(granularityLabel, gridBagConstraints);
@@ -502,7 +540,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         granularityFormattedTextField.setEnabled(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 12;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 10);
@@ -513,28 +551,28 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         nodesQualitiesCheckBox.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 10);
         add(nodesQualitiesCheckBox, gridBagConstraints);
 
         org.openide.awt.Mnemonics.setLocalizedText(edgesActivationCheckBox, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.edgesActivationCheckBox.text")); // NOI18N
         edgesActivationCheckBox.setEnabled(false);
         edgesActivationCheckBox.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-        edgesActivationCheckBox.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                edgesActivationCheckBoxStateChanged(evt);
+        edgesActivationCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                edgesActivationCheckBoxItemStateChanged(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 0);
         add(edgesActivationCheckBox, gridBagConstraints);
 
         org.openide.awt.Mnemonics.setLocalizedText(minActivatedEdgesLabel, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.minActivatedEdgesLabel.text")); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
         add(minActivatedEdgesLabel, gridBagConstraints);
@@ -542,7 +580,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         org.openide.awt.Mnemonics.setLocalizedText(maxActivatedEdgesLabel, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.maxActivatedEdgesLabel.text")); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 10, 0, 0);
         add(maxActivatedEdgesLabel, gridBagConstraints);
@@ -556,7 +594,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 10);
         add(minActivatedEdgesSpinner, gridBagConstraints);
@@ -570,10 +608,85 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 10, 0, 10);
         add(maxActivatedEdgesSpinner, gridBagConstraints);
+
+        org.openide.awt.Mnemonics.setLocalizedText(fireLCSButton, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.fireLCSButton.text")); // NOI18N
+        fireLCSButton.setEnabled(false);
+        fireLCSButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fireLCSActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 10, 0, 10);
+        add(fireLCSButton, gridBagConstraints);
+
+        org.openide.awt.Mnemonics.setLocalizedText(nodesLocationsCheckBox, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.nodesLocationsCheckBox.text")); // NOI18N
+        nodesLocationsCheckBox.setEnabled(false);
+        nodesLocationsCheckBox.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        nodesLocationsCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                nodesLocationsCheckBoxItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 0);
+        add(nodesLocationsCheckBox, gridBagConstraints);
+
+        org.openide.awt.Mnemonics.setLocalizedText(minLocationChangeIntervalLabel, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.minLocationChangeIntervalLabel.text")); // NOI18N
+        minLocationChangeIntervalLabel.setToolTipText(org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.minLocationChangeIntervalLabel.toolTipText")); // NOI18N
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
+        add(minLocationChangeIntervalLabel, gridBagConstraints);
+
+        minLocationChangeIntervalSpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        minLocationChangeIntervalSpinner.setEnabled(false);
+        minLocationChangeIntervalSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                minLocationChangeIntervalSpinnerStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 10);
+        add(minLocationChangeIntervalSpinner, gridBagConstraints);
+
+        org.openide.awt.Mnemonics.setLocalizedText(maxLocationChangeIntervalLabel, org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.maxLocationChangeIntervalLabel.text")); // NOI18N
+        maxLocationChangeIntervalLabel.setToolTipText(org.openide.util.NbBundle.getMessage(SpreadSimulatorTopComponent.class, "SpreadSimulatorTopComponent.maxLocationChangeIntervalLabel.toolTipText")); // NOI18N
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 10, 0, 0);
+        add(maxLocationChangeIntervalLabel, gridBagConstraints);
+
+        maxLocationChangeIntervalSpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        maxLocationChangeIntervalSpinner.setEnabled(false);
+        maxLocationChangeIntervalSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                maxLocationChangeIntervalSpinnerStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 10, 0, 10);
+        add(maxLocationChangeIntervalSpinner, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
 	private void initButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_initButtonActionPerformed
@@ -608,26 +721,68 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 		JPanel settingsPanel = scsUI.getSettingsPanel();
 		scsUI.setup(scs);
 		DialogDescriptor dd = new DialogDescriptor(settingsPanel, "State Change Strategy");
-		if (DialogDisplayer.getDefault().notify(dd).equals(NotifyDescriptor.OK_OPTION))
+		if (DialogDisplayer.getDefault().notify(dd).equals(NotifyDescriptor.OK_OPTION)) {
 			scsUI.unsetup();
-		scs.changeStates();
+			scs.changeStates();
+		}
 	}//GEN-LAST:event_fireSCSActionPerformed
 
 	private void fireRSActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fireRSActionPerformed
 		JPanel settingsPanel = rsUI.getSettingsPanel();
 		rsUI.setup(rs);
 		DialogDescriptor dd = new DialogDescriptor(settingsPanel, "Removal Strategy");
-		if (DialogDisplayer.getDefault().notify(dd).equals(NotifyDescriptor.OK_OPTION))
+		if (DialogDisplayer.getDefault().notify(dd).equals(NotifyDescriptor.OK_OPTION)) {
 			rsUI.unsetup();
-		rs.removeNodes();
+			rs.removeNodes();
+		}
 	}//GEN-LAST:event_fireRSActionPerformed
-	
-    private void edgesActivationCheckBoxStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_edgesActivationCheckBoxStateChanged
-        boolean edgesActivation = edgesActivationCheckBox.isSelected();
-		simulation.setEdgesActivation(edgesActivation);
-		minActivatedEdgesSpinner.setEnabled(simulation.isEdgesActivation());
-		maxActivatedEdgesSpinner.setEnabled(simulation.isEdgesActivation());
-    }//GEN-LAST:event_edgesActivationCheckBoxStateChanged
+
+    private void fireLCSActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fireLCSActionPerformed
+        JPanel settingsPanel = lcsUI.getSettingsPanel();
+		lcsUI.setup(lcs);
+		DialogDescriptor dd = new DialogDescriptor(settingsPanel, "Location Change Strategy");
+		if (DialogDisplayer.getDefault().notify(dd).equals(NotifyDescriptor.OK_OPTION)) {
+			lcsUI.unsetup();
+			lcs.changeLocations();
+		}
+    }//GEN-LAST:event_fireLCSActionPerformed
+
+    private void nodesLocationsCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_nodesLocationsCheckBoxItemStateChanged
+		if (evt.getStateChange() == ItemEvent.SELECTED || evt.getStateChange() == ItemEvent.DESELECTED) {
+			boolean nodesLocations = nodesLocationsCheckBox.isSelected();
+			simulation.setNodesLocations(nodesLocations);
+			fireLCSButton.setEnabled(simulation.isNodesLocations());
+			minLocationChangeIntervalSpinner.setEnabled(simulation.isNodesLocations());
+			maxLocationChangeIntervalSpinner.setEnabled(simulation.isNodesLocations());
+		}
+    }//GEN-LAST:event_nodesLocationsCheckBoxItemStateChanged
+
+    private void minLocationChangeIntervalSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_minLocationChangeIntervalSpinnerStateChanged
+        int minLocationChangeInterval = (Integer)minLocationChangeIntervalSpinner.getValue();
+		int maxLocationChangeInterval = (Integer)maxLocationChangeIntervalSpinner.getValue();
+		if (minLocationChangeInterval > maxLocationChangeInterval)
+			minLocationChangeInterval = maxLocationChangeInterval;
+		simulation.setMinLocationChangeInterval(minLocationChangeInterval);
+		minLocationChangeIntervalSpinner.setValue(simulation.getMinLocationChangeInterval());
+    }//GEN-LAST:event_minLocationChangeIntervalSpinnerStateChanged
+
+    private void maxLocationChangeIntervalSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_maxLocationChangeIntervalSpinnerStateChanged
+        int minLocationChangeInterval = (Integer)minLocationChangeIntervalSpinner.getValue();
+		int maxLocationChangeInterval = (Integer)maxLocationChangeIntervalSpinner.getValue();
+		if (minLocationChangeInterval > maxLocationChangeInterval)
+			maxLocationChangeInterval = minLocationChangeInterval;
+		simulation.setMaxLocationChangeInterval(maxLocationChangeInterval);
+		maxLocationChangeIntervalSpinner.setValue(simulation.getMaxLocationChangeInterval());
+    }//GEN-LAST:event_maxLocationChangeIntervalSpinnerStateChanged
+
+    private void edgesActivationCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_edgesActivationCheckBoxItemStateChanged
+        if (evt.getStateChange() == ItemEvent.SELECTED || evt.getStateChange() == ItemEvent.DESELECTED) {
+			boolean edgesActivation = edgesActivationCheckBox.isSelected();
+			simulation.setEdgesActivation(edgesActivation);
+			minActivatedEdgesSpinner.setEnabled(simulation.isEdgesActivation());
+			maxActivatedEdgesSpinner.setEnabled(simulation.isEdgesActivation());
+		}
+    }//GEN-LAST:event_edgesActivationCheckBoxItemStateChanged
 	
 	private void minActivatedEdgesSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_minActivatedEdgesSpinnerStateChanged
 		int minActivatedEdges = (Integer)minActivatedEdgesSpinner.getValue();
@@ -669,7 +824,11 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 		removeSCButton.setEnabled(false);
 		fireSCSButton.setEnabled(false);
 		fireRSButton.setEnabled(false);
+		fireLCSButton.setEnabled(false);
 		nodesQualitiesCheckBox.setEnabled(false);
+		nodesLocationsCheckBox.setEnabled(false);
+		minLocationChangeIntervalSpinner.setEnabled(false);
+		maxLocationChangeIntervalSpinner.setEnabled(false);
 		edgesActivationCheckBox.setEnabled(false);
 		minActivatedEdgesSpinner.setEnabled(false);
 		maxActivatedEdgesSpinner.setEnabled(false);
@@ -680,12 +839,18 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 		nextStepButton.setEnabled(false);
 
 		boolean nodesQualities = nodesQualitiesCheckBox.isSelected();
+		boolean nodesLocations = nodesLocationsCheckBox.isSelected();
+		int minLocationChangeInterval = (Integer)minLocationChangeIntervalSpinner.getValue();
+		int maxLocationChangeInterval = (Integer)maxLocationChangeIntervalSpinner.getValue();
 		boolean edgesActivation = edgesActivationCheckBox.isSelected();
 		int minActivatedEdges = (Integer)minActivatedEdgesSpinner.getValue();
 		int maxActivatedEdges = (Integer)maxActivatedEdgesSpinner.getValue();
 		double granularity = Double.parseDouble(granularityFormattedTextField.getText());
 		long delay = Long.parseLong(delayFormattedTextField.getText());
 		simulation.setNodesQualities(nodesQualities);
+		simulation.setNodesLocations(nodesLocations);
+		simulation.setMinLocationChangeInterval(minLocationChangeInterval);
+		simulation.setMaxLocationChangeInterval(maxLocationChangeInterval);
 		simulation.setEdgesActivation(edgesActivation);
 		simulation.setMinActivatedEdges(minActivatedEdges);
 		simulation.setMaxActivatedEdges(maxActivatedEdges);
@@ -699,7 +864,11 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 		removeSCButton.setEnabled(false);
 		fireSCSButton.setEnabled(false);
 		fireRSButton.setEnabled(false);
+		fireLCSButton.setEnabled(false);
 		nodesQualitiesCheckBox.setEnabled(false);
+		nodesLocationsCheckBox.setEnabled(false);
+		minLocationChangeIntervalSpinner.setEnabled(false);
+		maxLocationChangeIntervalSpinner.setEnabled(false);
 		edgesActivationCheckBox.setEnabled(false);
 		minActivatedEdgesSpinner.setEnabled(false);
 		maxActivatedEdgesSpinner.setEnabled(false);
@@ -718,7 +887,11 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 		removeSCButton.setEnabled(false);
 		fireSCSButton.setEnabled(false);
 		fireRSButton.setEnabled(false);
+		fireLCSButton.setEnabled(false);
 		nodesQualitiesCheckBox.setEnabled(false);
+		nodesLocationsCheckBox.setEnabled(false);
+		minLocationChangeIntervalSpinner.setEnabled(false);
+		maxLocationChangeIntervalSpinner.setEnabled(false);
 		edgesActivationCheckBox.setEnabled(false);
 		minActivatedEdgesSpinner.setEnabled(false);
 		maxActivatedEdgesSpinner.setEnabled(false);
@@ -729,12 +902,18 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
 		nextStepButton.setEnabled(false);
 
 		boolean nodesQualities = nodesQualitiesCheckBox.isSelected();
+		boolean nodesLocations = nodesLocationsCheckBox.isSelected();
+		int minLocationChangeInterval = (Integer)minLocationChangeIntervalSpinner.getValue();
+		int maxLocationChangeInterval = (Integer)maxLocationChangeIntervalSpinner.getValue();
 		boolean edgesActivation = edgesActivationCheckBox.isSelected();
 		int minActivatedEdges = (Integer)minActivatedEdgesSpinner.getValue();
 		int maxActivatedEdges = (Integer)maxActivatedEdgesSpinner.getValue();
 		double granularity = Double.parseDouble(granularityFormattedTextField.getText());
 		long delay = Long.parseLong(delayFormattedTextField.getText());
 		simulation.setNodesQualities(nodesQualities);
+		simulation.setNodesLocations(nodesLocations);
+		simulation.setMinLocationChangeInterval(minLocationChangeInterval);
+		simulation.setMaxLocationChangeInterval(maxLocationChangeInterval);
 		simulation.setEdgesActivation(edgesActivation);
 		simulation.setMinActivatedEdges(minActivatedEdges);
 		simulation.setMaxActivatedEdges(maxActivatedEdges);
@@ -748,6 +927,7 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
     private javax.swing.JFormattedTextField delayFormattedTextField;
     private javax.swing.JLabel delayLabel;
     private javax.swing.JCheckBox edgesActivationCheckBox;
+    private javax.swing.JButton fireLCSButton;
     private javax.swing.JButton fireRSButton;
     private javax.swing.JButton fireSCSButton;
     private javax.swing.JFormattedTextField granularityFormattedTextField;
@@ -755,9 +935,14 @@ public final class SpreadSimulatorTopComponent extends TopComponent {
     private javax.swing.JButton initButton;
     private javax.swing.JLabel maxActivatedEdgesLabel;
     private javax.swing.JSpinner maxActivatedEdgesSpinner;
+    private javax.swing.JLabel maxLocationChangeIntervalLabel;
+    private javax.swing.JSpinner maxLocationChangeIntervalSpinner;
     private javax.swing.JLabel minActivatedEdgesLabel;
     private javax.swing.JSpinner minActivatedEdgesSpinner;
+    private javax.swing.JLabel minLocationChangeIntervalLabel;
+    private javax.swing.JSpinner minLocationChangeIntervalSpinner;
     private javax.swing.JButton nextStepButton;
+    private javax.swing.JCheckBox nodesLocationsCheckBox;
     private javax.swing.JCheckBox nodesQualitiesCheckBox;
     private javax.swing.JButton previousStepButton;
     private javax.swing.JButton removeSCButton;

@@ -42,9 +42,13 @@ public class NeighbourhoodAlgorithm implements TransitionAlgorithm {
 	@Override
 	public Edge tryDoTransition(SimulationData simulationData, Map<Edge, Double> probs) {
 		Node ceNode = simulationData.getCurrentlyExaminedNode();
+		String ceLocation = (String)ceNode.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_LOCATION);
 		List<Node> neighbors = new LinkedList<Node>();
-		for (Node node : simulationData.getSnapshotGraphForCurrentStep().getNeighbors(ceNode))
-			neighbors.add(node);
+		for (Node node : simulationData.getSnapshotGraphForCurrentStep().getNeighbors(ceNode)) {
+			String location = (String)node.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_LOCATION);
+			if (!simulationData.isNodesLocations() || ceLocation.equals(location))
+				neighbors.add(node);
+		}
 		if (simulationData.isEdgesActivation()) {
 			int min = simulationData.getMinActivatedEdges();
 			int max = simulationData.getMaxActivatedEdges();
@@ -61,9 +65,9 @@ public class NeighbourhoodAlgorithm implements TransitionAlgorithm {
 		for (Node node : neighbors) {
 			double quality = 1.0;
 			if (simulationData.isNodesQualities())
-				quality = (Double)node.getNodeData().getAttributes().getValue("Quality");
+				quality = (Double)node.getNodeData().getAttributes().getValue(SimulationData.NM_QUALITY);
 			for (String state : states)
-				if (state.equals(node.getNodeData().getAttributes().getValue(simulationData.NM_CURRENT_STATE))) {
+				if (state.equals(node.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_STATE))) {
 					double p = new Random().nextDouble();
 					double sum = 0.0;
 					for (Entry<Edge, Double> prob : probs.entrySet()) {

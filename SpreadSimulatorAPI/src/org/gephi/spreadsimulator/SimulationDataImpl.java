@@ -20,13 +20,7 @@
  */
 package org.gephi.spreadsimulator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
 import org.gephi.data.attributes.type.Interval;
 import org.gephi.data.attributes.type.TimeInterval;
 import org.gephi.dynamic.api.DynamicGraph;
@@ -48,6 +42,7 @@ public class SimulationDataImpl implements SimulationData {
 	private final GraphModel networkModel;
 	private final DynamicModel networkDynamicModel;
 	private final GraphModel stateMachineModel;
+	private final GraphModel locationMachineModel;
 	
 	private Graph currentSnapshot;
 	
@@ -58,18 +53,22 @@ public class SimulationDataImpl implements SimulationData {
 	private Map<String, Float> gMap;
 	private Map<String, Float> bMap;
 	
+	private String defaultLocation;
+	private Map<String, Node> lmNodes;
+	
 	private List<Map<String, Integer>> nodesCount;
 
 	private int currentStep;
 	private Node ceNode;
 
 	public SimulationDataImpl(SimulationImpl simulation, GraphModel networkModel, DynamicModel networkDynamicModel,
-																				  GraphModel stateMachineModel) {
+							  GraphModel stateMachineModel, GraphModel locationMachineModel) {
 		this.simulation = simulation;
 		
 		this.networkModel = networkModel;
 		this.networkDynamicModel = networkDynamicModel;
 		this.stateMachineModel = stateMachineModel;
+		this.locationMachineModel = locationMachineModel;
 		
 		if (networkDynamicModel.isDynamicGraph()) {
 			DynamicGraph dynamicGraph = networkDynamicModel.createDynamicGraph(networkModel.getGraph());
@@ -94,6 +93,16 @@ public class SimulationDataImpl implements SimulationData {
 			gMap.put(state, node.getNodeData().g());
 			bMap.put(state, node.getNodeData().b());
 		}
+		
+		defaultLocation = "L1";
+		lmNodes = new HashMap<String, Node>();
+		if (locationMachineModel != null)
+			for (Node node : locationMachineModel.getGraph().getNodes()) {
+				String location = (String)node.getNodeData().getAttributes().getValue(LM_LOCATION_NAME);
+				if ((Boolean)node.getNodeData().getAttributes().getValue(LM_DEFAULT_LOCATION))
+					defaultLocation = location;
+				lmNodes.put(location, node);
+			}
 
 		nodesCount = new ArrayList<Map<String, Integer>>();
 		Map<String, Integer> map = new HashMap<String, Integer>();
@@ -121,6 +130,11 @@ public class SimulationDataImpl implements SimulationData {
 	public GraphModel getStateMachineModel() {
 		return stateMachineModel;
 	}
+	
+	@Override
+	public GraphModel getLocationMachineModel() {
+		return locationMachineModel;
+	}
 
 	@Override
 	public Graph getSnapshotGraphForCurrentStep() {
@@ -130,6 +144,11 @@ public class SimulationDataImpl implements SimulationData {
 	@Override
 	public boolean isNodesQualities() {
 		return simulation.isNodesQualities();
+	}
+	
+	@Override
+	public boolean isNodesLocations() {
+		return simulation.isNodesLocations();
 	}
 	
 	@Override
@@ -156,11 +175,19 @@ public class SimulationDataImpl implements SimulationData {
 	public String getDefaultState() {
 		return defaultState;
 	}
+
+	@Override
+	public String getDefaultLocation() {
+		return defaultLocation;
+	}
 	
 	@Override
 	public int getLatencyForState(String state) {
-		Integer latency = (Integer)smNodes.get(state).getNodeData().getAttributes().getValue(SM_LATENCY);
-		return latency != null ? latency : 0;
+		Integer latencyMin = (Integer)smNodes.get(state).getNodeData().getAttributes().getValue(SM_LATENCY_MIN);
+		Integer latencyMax = (Integer)smNodes.get(state).getNodeData().getAttributes().getValue(SM_LATENCY_MAX);
+		return latencyMin != null && latencyMax != null
+			   ? new Random().nextInt(latencyMax - latencyMin + 1) + latencyMin
+			   : 0;
 	}
 
 	@Override
@@ -196,6 +223,10 @@ public class SimulationDataImpl implements SimulationData {
 
 	public float getBForState(String state) {
 		return bMap.get(state);
+	}
+	
+	public Node getLocationMachineNodeForLocation(String location) {
+		return lmNodes.get(location);
 	}
 
 	/*** [GCD + Window] ***/

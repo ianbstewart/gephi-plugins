@@ -44,6 +44,18 @@ public interface Simulation extends LongTask {
 	
 	public void setNodesQualities(boolean nodesQualities);
 	
+	public boolean isNodesLocations();
+	
+	public void setNodesLocations(boolean nodesQualities);
+	
+	public int getMinLocationChangeInterval();
+
+	public void setMinLocationChangeInterval(int minLocationChangeInterval);
+	
+	public int getMaxLocationChangeInterval();
+
+	public void setMaxLocationChangeInterval(int maxLocationChangeInterval);
+	
 	public boolean isEdgesActivation();
 	
 	public void setEdgesActivation(boolean edgesActivation);

@@ -32,19 +32,32 @@ import org.openide.util.NbBundle;
  * @author Cezary Bartosiak
  */
 public interface SimulationData {
-	public static final String NM_CURRENT_STATE = "CurrentState";
-	public static final String NM_CURRENT_LATENCY = "CurrentLatency";
+	public static final String NM_QUALITY                  = "Quality";
+	public static final String NM_CURRENT_STATE            = "CurrentState";
+	public static final String NM_CURRENT_LOCATION         = "CurrentLocation";
+	public static final String NM_STEPS_TO_CHANGE_LOCATION = "StepsToChangeLocation";
+	public static final String NM_CURRENT_LATENCY          = "CurrentLatency";
+	
+	public static final String NM_CURRENT_STATE_TITLE =
+			NbBundle.getMessage(SimulationData.class, "SimulationData.CurrentStateTitle");
+	public static final String NM_CURRENT_LOCATION_TITLE =
+			NbBundle.getMessage(SimulationData.class, "SimulationData.CurrentLocationTitle");
+	public static final String NM_STEPS_TO_CHANGE_LOCATION_TITLE =
+			NbBundle.getMessage(SimulationData.class, "SimulationData.StepsToChangeLocationTitle");
+	public static final String NM_CURRENT_LATENCY_TITLE =
+			NbBundle.getMessage(SimulationData.class, "SimulationData.CurrentLatencyTitle");
+	
 	public static final String SM_STATE_NAME    = "StateName";
 	public static final String SM_DEFAULT_STATE = "DefaultState";
-	public static final String SM_LATENCY = "Latency";
+	public static final String SM_LATENCY_MIN   = "LatencyMin";
+	public static final String SM_LATENCY_MAX   = "LatencyMax";
 	public static final String SM_INITIAL_EVENT = "InitialEvent";
 	public static final String SM_CHOICE        = "Choice";
 	public static final String SM_PROBABILITY   = "Probability";
-
-	public static final String NM_CURRENT_STATE_TITLE =
-			NbBundle.getMessage(SimulationData.class, "SimulationData.CurrentStateTitle");
-	public static final String NM_CURRENT_LATENCY_TITLE =
-			NbBundle.getMessage(SimulationData.class, "SimulationData.CurrentLatencyTitle");
+	
+	public static final String LM_LOCATION_NAME    = "LocationName";
+	public static final String LM_DEFAULT_LOCATION = "DefaultLocation";
+	public static final String LM_PROBABILITY      = "Probability";
 
 	public GraphModel getNetworkModel();
 	
@@ -52,9 +65,13 @@ public interface SimulationData {
 
 	public GraphModel getStateMachineModel();
 	
+	public GraphModel getLocationMachineModel();
+	
 	public Graph getSnapshotGraphForCurrentStep();
 	
 	public boolean isNodesQualities();
+	
+	public boolean isNodesLocations();
 	
 	public boolean isEdgesActivation();
 	
@@ -65,6 +82,8 @@ public interface SimulationData {
 	public double getGranularity();
 
 	public String getDefaultState();
+	
+	public String getDefaultLocation();
 	
 	public int getLatencyForState(String state);
 
