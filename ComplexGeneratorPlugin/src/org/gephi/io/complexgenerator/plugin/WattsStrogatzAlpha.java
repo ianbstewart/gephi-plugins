@@ -66,8 +66,8 @@ public class WattsStrogatzAlpha implements Generator {
 		container.setEdgeDefault(EdgeDefault.UNDIRECTED);
 
 		// Timestamps
-		int vt = 0;
-		int et = 1;
+		// int vt = 0;
+		// int et = 1;
 
 		NodeDraft[] nodes = new NodeDraft[n];
 
@@ -76,16 +76,16 @@ public class WattsStrogatzAlpha implements Generator {
 		for (int i = 0; i < n && !cancel; ++i) {
 			NodeDraft node = container.factory().newNodeDraft();
 			node.setLabel("Node " + i);
-			node.addTimeInterval(vt + "", n * k / 2 + "");
+			// node.addTimeInterval(vt + "", n * k / 2 + "");
 			nodes[i] = node;
 			container.addNode(node);
 			Progress.progress(progressTicket);
 		}
-		for (int i = 0; i < n && !cancel; ++i, ++et) {
+		for (int i = 0; i < n && !cancel; ++i/* , ++et */) {
 			EdgeDraft edge = container.factory().newEdgeDraft();
 			edge.setSource(nodes[i]);
 			edge.setTarget(nodes[(i + 1) % n]);
-			edge.addTimeInterval(et + "", n * k / 2 + "");
+			// edge.addTimeInterval(et + "", n * k / 2 + "");
 			container.addEdge(edge);
 			ec++;
 			Progress.progress(progressTicket);
@@ -113,7 +113,7 @@ public class WattsStrogatzAlpha implements Generator {
 							EdgeDraft edge = container.factory().newEdgeDraft();
 							edge.setSource(nodes[i]);
 							edge.setTarget(nodes[j]);
-							edge.addTimeInterval(et++ + "", n * k / 2 + "");
+							// edge.addTimeInterval(et++ + "", n * k / 2 + "");
 							container.addEdge(edge);
 							ec++;
 

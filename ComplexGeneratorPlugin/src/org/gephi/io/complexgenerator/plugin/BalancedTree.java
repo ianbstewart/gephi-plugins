@@ -59,8 +59,8 @@ public class BalancedTree implements Generator {
 		container.setEdgeDefault(EdgeDefault.UNDIRECTED);
 
 		// Timestamps
-		int vt = 1;
-		int et = 1;
+		// int vt = 1;
+		// int et = 1;
 
 		// Creating a root of degree r
 		int v = 1;
@@ -72,37 +72,37 @@ public class BalancedTree implements Generator {
 		for (int i = 0; i < r && !cancel; ++i) {
 			NodeDraft node = container.factory().newNodeDraft();
 			node.setLabel("Node " + v++);
-			node.addTimeInterval(vt + "", h + "");
+			// node.addTimeInterval(vt + "", h + "");
 			newLeaves.add(node);
 			container.addNode(node);
 
 			EdgeDraft edge = container.factory().newEdgeDraft();
 			edge.setSource(root);
 			edge.setTarget(node);
-			edge.addTimeInterval(et + "", h + "");
+			// edge.addTimeInterval(et + "", h + "");
 			container.addEdge(edge);
 			
 			Progress.progress(progressTicket);
 		}
-		vt++;
-		et++;
+		// vt++;
+		// et++;
 
 		// Creating internal nodes
-		for (int height = 1; height < h && !cancel; ++height, ++vt, ++et) {
+		for (int height = 1; height < h && !cancel; ++height/* , ++vt, ++et */) {
 			List<NodeDraft> leaves = newLeaves;
 			newLeaves = new ArrayList<NodeDraft>();
 			for (NodeDraft leave : leaves)
 				for (int i = 0; i < r; ++i) {
 					NodeDraft node = container.factory().newNodeDraft();
 					node.setLabel("Node " + v++);
-					node.addTimeInterval(vt + "", h + "");
+					// node.addTimeInterval(vt + "", h + "");
 					newLeaves.add(node);
 					container.addNode(node);
 
 					EdgeDraft edge = container.factory().newEdgeDraft();
 					edge.setSource(leave);
 					edge.setTarget(node);
-					edge.addTimeInterval(et + "", h + "");
+					// edge.addTimeInterval(et + "", h + "");
 					container.addEdge(edge);
 
 					Progress.progress(progressTicket);
