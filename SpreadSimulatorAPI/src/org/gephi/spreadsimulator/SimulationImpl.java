@@ -22,6 +22,7 @@ package org.gephi.spreadsimulator;
 
 import java.awt.Color;
 import java.io.File;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -86,6 +87,9 @@ public class SimulationImpl implements Simulation {
 	private ChoiceFactoryImpl cFactory;
 
 	private boolean nodesQualities;
+	private boolean nodesLocations;
+	private int minLocationChangeInterval;
+	private int maxLocationChangeInterval;
 	private boolean edgesActivation;
 	private int minActivatedEdges;
 	private int maxActivatedEdges;
@@ -145,6 +149,18 @@ public class SimulationImpl implements Simulation {
 							}
 							catch (Exception ex) { }
 						}
+						else if (av.getColumn().getId().equals(SimulationData.NM_CURRENT_LOCATION) && ob instanceof NodeData) {
+							NodeData nodeData = (NodeData)ob;
+							try {
+								if (simulationDatas.size() > simnr) {
+									int interval = new Random().nextInt(maxLocationChangeInterval - minLocationChangeInterval + 1)
+												   + minLocationChangeInterval;
+									if (nodeData.getAttributes().getValue(SimulationDataImpl.NM_STEPS_TO_CHANGE_LOCATION) != null)
+										nodeData.getAttributes().setValue(SimulationData.NM_STEPS_TO_CHANGE_LOCATION, interval);
+								}
+							}
+							catch (Exception ex) { }
+						}
 					}
 			}
 		};
@@ -157,16 +173,22 @@ public class SimulationImpl implements Simulation {
 		gc = Lookup.getDefault().lookup(GraphController.class);
 		dc = Lookup.getDefault().lookup(DynamicController.class);
 
-		nodesQualities = true;
-		edgesActivation = true;
+		nodesQualities = false;
+		nodesLocations = false;
+		minLocationChangeInterval = 0;
+		maxLocationChangeInterval = 0;
+		edgesActivation = false;
 		minActivatedEdges = 0;
 		maxActivatedEdges = 100;
 		granularity = 1.0;
 		
 		stopConditions = new ArrayList<StopCondition>();
 		simulationDatas = new ArrayList<SimulationDataImpl>();
-		simulationDatas.add(new SimulationDataImpl(this, gc.getModel(workspaces[0]), dc.getModel(workspaces[0]),
-				gc.getModel(workspaces[1])));
+		simulationDatas.add(new SimulationDataImpl(this,
+												   gc.getModel(workspaces[0]),
+												   dc.getModel(workspaces[0]),
+												   gc.getModel(workspaces[1]),
+												   workspaces.length > 2 ? gc.getModel(workspaces[2]) : null));
 		ieFactory = new InitialEventFactoryImpl();
 		cFactory = new ChoiceFactoryImpl();
 
@@ -229,6 +251,59 @@ public class SimulationImpl implements Simulation {
 	@Override
 	public void setNodesQualities(boolean nodesQualities) {
 		this.nodesQualities = nodesQualities;
+	}
+	
+	@Override
+	public boolean isNodesLocations() {
+		return nodesLocations;
+	}
+	
+	@Override
+	public void setNodesLocations(boolean nodesLocations) {
+		this.nodesLocations = nodesLocations;
+		AttributeModel networkAttributeModel = Lookup.getDefault().lookup(AttributeController.class).getModel(workspaces[0]);
+		if (nodesLocations) {
+			if (!networkAttributeModel.getNodeTable().hasColumn(SimulationDataImpl.NM_STEPS_TO_CHANGE_LOCATION))
+				networkAttributeModel.getNodeTable().addColumn(SimulationDataImpl.NM_STEPS_TO_CHANGE_LOCATION,
+															   SimulationDataImpl.NM_STEPS_TO_CHANGE_LOCATION_TITLE,
+															   AttributeType.INT, AttributeOrigin.DATA, 0);
+			if (!networkAttributeModel.getNodeTable().hasColumn(SimulationDataImpl.NM_CURRENT_LOCATION))
+				networkAttributeModel.getNodeTable().addColumn(SimulationDataImpl.NM_CURRENT_LOCATION,
+															   SimulationDataImpl.NM_CURRENT_LOCATION_TITLE, AttributeType.STRING,
+															   AttributeOrigin.DATA, "L1");
+			
+			for (Node node : simulationDatas.get(simnr).getSnapshotGraphForCurrentStep().getNodes())
+				node.getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_LOCATION,
+															simulationDatas.get(simnr).getDefaultLocation());
+		}
+		else {
+			if (networkAttributeModel.getNodeTable().hasColumn(SimulationDataImpl.NM_CURRENT_LOCATION))
+				networkAttributeModel.getNodeTable().removeColumn(
+						networkAttributeModel.getNodeTable().getColumn(SimulationDataImpl.NM_CURRENT_LOCATION));
+			if (networkAttributeModel.getNodeTable().hasColumn(SimulationDataImpl.NM_STEPS_TO_CHANGE_LOCATION))
+				networkAttributeModel.getNodeTable().removeColumn(
+						networkAttributeModel.getNodeTable().getColumn(SimulationDataImpl.NM_STEPS_TO_CHANGE_LOCATION));
+		}
+	}
+	
+	@Override
+	public int getMinLocationChangeInterval() {
+		return minLocationChangeInterval;
+	}
+
+	@Override
+	public void setMinLocationChangeInterval(int minLocationChangeInterval) {
+		this.minLocationChangeInterval = minLocationChangeInterval;
+	}
+	
+	@Override
+	public int getMaxLocationChangeInterval() {
+		return maxLocationChangeInterval;
+	}
+
+	@Override
+	public void setMaxLocationChangeInterval(int maxLocationChangeInterval) {
+		this.maxLocationChangeInterval = maxLocationChangeInterval;
 	}
 	
 	@Override
@@ -311,10 +386,16 @@ public class SimulationImpl implements Simulation {
 			throw new IllegalArgumentException("Count must be greater than 0.");
 
 		Map<Node, String> nsmap = new HashMap<Node, String>();
-		Map<Node, Integer> nlmap = new HashMap<Node, Integer>();
+		Map<Node, Integer> nlatmap = new HashMap<Node, Integer>();
+		Map<Node, String> nlocmap = new HashMap<Node, String>();
+		Map<Node, Integer> nstpmap = new HashMap<Node, Integer>();
 		for (Node node : gc.getModel(workspaces[0]).getGraph().getNodes()) {
 			nsmap.put(node, (String)node.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_STATE));
-			nlmap.put(node, (Integer)node.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_LATENCY));
+			nlatmap.put(node, (Integer)node.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_LATENCY));
+			if (nodesLocations) {
+				nlocmap.put(node, (String)node.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_LOCATION));
+				nstpmap.put(node, (Integer)node.getNodeData().getAttributes().getValue(SimulationData.NM_STEPS_TO_CHANGE_LOCATION));
+			}
 		}
 
 		if (count == 1)
@@ -324,17 +405,24 @@ public class SimulationImpl implements Simulation {
 			fireSimulationEvent(new SimulationEventImpl(EventType.START));
 			cancel = false;
 
-			for (simnr = 0; simnr < count; ++simnr) {
+			for (simnr = 0; simnr < count; simnr++) {
 				while (!cancel && !nextSim)
 					nextStep();
 				for (Node node : gc.getModel(workspaces[0]).getGraph().getNodes()) {
 					node.getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_STATE, nsmap.get(node));
-					node.getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_LATENCY, nlmap.get(node));
+					node.getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_LATENCY, nlatmap.get(node));
+					if (nodesLocations) {
+						node.getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_LOCATION, nlocmap.get(node));
+						node.getNodeData().getAttributes().setValue(SimulationData.NM_STEPS_TO_CHANGE_LOCATION, nstpmap.get(node));
+					}
 				}
 				if (cancel) {
 					simulationDatas = new ArrayList<SimulationDataImpl>();
-					simulationDatas.add(new SimulationDataImpl(this, gc.getModel(workspaces[0]), dc.getModel(workspaces[0]),
-							gc.getModel(workspaces[1])));
+					simulationDatas.add(new SimulationDataImpl(this,
+															   gc.getModel(workspaces[0]),
+															   dc.getModel(workspaces[0]),
+															   gc.getModel(workspaces[1]),
+															   workspaces.length > 2 ? gc.getModel(workspaces[2]) : null));
 					simnr = 0;
 					count = 1;
 					Progress.finish(progressTicket);
@@ -342,8 +430,11 @@ public class SimulationImpl implements Simulation {
 				}
 				nextSim = false;
 				if (simnr < count - 1)
-					simulationDatas.add(new SimulationDataImpl(this, gc.getModel(workspaces[0]), dc.getModel(workspaces[0]),
-							gc.getModel(workspaces[1])));
+					simulationDatas.add(new SimulationDataImpl(this,
+															   gc.getModel(workspaces[0]),
+															   dc.getModel(workspaces[0]),
+															   gc.getModel(workspaces[1]),
+															   workspaces.length > 2 ? gc.getModel(workspaces[2]) : null));
 				Progress.progress(progressTicket, simnr);
 			}
 			simnr--;
@@ -441,7 +532,32 @@ public class SimulationImpl implements Simulation {
 		for (Entry<Node, String> entry : newStates.entrySet())
 			if (entry.getValue() != null)
 				entry.getKey().getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_STATE, entry.getValue());
-
+		if (nodesLocations)
+			for (Node nmNode : nodesForCurrentStep) {
+				Integer steps = (Integer)nmNode.getNodeData().getAttributes().getValue(SimulationData.NM_STEPS_TO_CHANGE_LOCATION);
+				steps--;
+				if (steps < 0) {
+					String currentLocation = (String)nmNode.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_LOCATION);
+					Node lmNode = simd.getLocationMachineNodeForLocation(currentLocation);
+					Edge[] outlmEdges = simd.getLocationMachineModel().getDirectedGraph().getOutEdges(lmNode).toArray();;
+					String location = null;
+					double p = new Random().nextDouble();
+					double sum = 0.0;
+					for (Edge edge : outlmEdges) {
+						Double probability = (Double)edge.getEdgeData().getAttributes().getValue(SimulationData.LM_PROBABILITY);
+						sum += probability;
+						if (p <= sum) {
+							location = (String)edge.getTarget().getNodeData().getAttributes().getValue(SimulationData.LM_LOCATION_NAME);
+							break;
+						}
+					}
+					if (location != null)
+						nmNode.getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_LOCATION, location);
+					else nmNode.getNodeData().getAttributes().setValue(SimulationData.NM_STEPS_TO_CHANGE_LOCATION, 0);
+				}
+				else nmNode.getNodeData().getAttributes().setValue(SimulationData.NM_STEPS_TO_CHANGE_LOCATION, steps);
+			}
+		
 		simulationDatas.get(simnr).incrementCurrentStep();
 		for (StopCondition sc : stopConditions)
 			if (sc.isOccuring(simulationDatas.get(simnr))) {

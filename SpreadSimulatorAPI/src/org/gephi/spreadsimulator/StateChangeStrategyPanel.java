@@ -187,8 +187,6 @@ public class StateChangeStrategyPanel extends javax.swing.JPanel {
 
         stateLabel.setText(org.openide.util.NbBundle.getMessage(StateChangeStrategyPanel.class, "StateChangeStrategyPanel.stateLabel.text")); // NOI18N
 
-        stateTextField.setText(org.openide.util.NbBundle.getMessage(StateChangeStrategyPanel.class, "StateChangeStrategyPanel.stateTextField.text")); // NOI18N
-
         buttonGroup.add(attributeHighestRadioButton);
         attributeHighestRadioButton.setText(org.openide.util.NbBundle.getMessage(StateChangeStrategyPanel.class, "StateChangeStrategyPanel.attributeHighestRadioButton.text")); // NOI18N
         attributeHighestRadioButton.setActionCommand(org.openide.util.NbBundle.getMessage(StateChangeStrategyPanel.class, "StateChangeStrategyPanel.attributeHighestRadioButton.actionCommand")); // NOI18N
@@ -213,35 +211,27 @@ public class StateChangeStrategyPanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(stateLabel)
-                    .addComponent(kLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(kFormattedTextField)
-                    .addComponent(stateTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 128, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(exactlyKCheckBox)
-                .addContainerGap(212, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(randomRadioButton)
-                    .addComponent(randomRandomRadioButton))
-                .addContainerGap(348, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(attributeHighestRadioButton)
-                .addContainerGap(320, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(attributeLowestRadioButton)
-                .addContainerGap(324, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(contentScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 318, Short.MAX_VALUE)
                     .addComponent(columnsLabel))
                 .addGap(133, 133, 133))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(stateLabel)
+                            .addComponent(kLabel))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(kFormattedTextField)
+                            .addComponent(stateTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 128, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(exactlyKCheckBox))
+                    .addComponent(randomRadioButton)
+                    .addComponent(randomRandomRadioButton)
+                    .addComponent(attributeHighestRadioButton)
+                    .addComponent(attributeLowestRadioButton))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
