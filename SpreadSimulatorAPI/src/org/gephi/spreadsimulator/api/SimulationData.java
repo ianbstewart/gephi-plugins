@@ -34,12 +34,15 @@ import org.openide.util.NbBundle;
 public interface SimulationData {
 	public static final String NM_QUALITY                  = "Quality";
 	public static final String NM_CURRENT_STATE            = "CurrentState";
+	public static final String NM_STEPS_SINCE_STATE_CHANGE = "StepsSinceStateChange";
 	public static final String NM_CURRENT_LOCATION         = "CurrentLocation";
 	public static final String NM_STEPS_TO_CHANGE_LOCATION = "StepsToChangeLocation";
 	public static final String NM_CURRENT_LATENCY          = "CurrentLatency";
 	
 	public static final String NM_CURRENT_STATE_TITLE =
 			NbBundle.getMessage(SimulationData.class, "SimulationData.CurrentStateTitle");
+	public static final String NM_STEPS_SINCE_STATE_CHANGE_TITLE =
+			NbBundle.getMessage(SimulationData.class, "SimulationData.StepsSinceStateChangeTitle");
 	public static final String NM_CURRENT_LOCATION_TITLE =
 			NbBundle.getMessage(SimulationData.class, "SimulationData.CurrentLocationTitle");
 	public static final String NM_STEPS_TO_CHANGE_LOCATION_TITLE =
