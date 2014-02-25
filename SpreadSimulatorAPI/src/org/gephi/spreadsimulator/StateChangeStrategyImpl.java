@@ -113,8 +113,10 @@ public class StateChangeStrategyImpl implements StateChangeStrategy {
 				break;
 		}
 
-		for (Node node : modNodes)
+		for (Node node : modNodes) {
 			node.getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_STATE, stateName);
+			node.getNodeData().getAttributes().setValue(SimulationData.NM_STEPS_SINCE_STATE_CHANGE, 0);
+		}
 	}
 
 	private double getScalarValueForColumn(Node node, AttributeColumn column) {

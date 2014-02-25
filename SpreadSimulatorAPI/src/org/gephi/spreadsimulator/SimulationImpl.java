@@ -123,6 +123,7 @@ public class SimulationImpl implements Simulation {
 								(String)node.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_STATE)));
 						node.getNodeData().setB(simulationDatas.get(simnr).getBForState(
 								(String)node.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_STATE)));
+						node.getNodeData().getAttributes().setValue(SimulationData.NM_STEPS_SINCE_STATE_CHANGE, 0);
 						node.getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_LATENCY,
 																	simulationDatas.get(simnr).getLatencyForState(
 																			(String)node.getNodeData().getAttributes().
@@ -142,6 +143,7 @@ public class SimulationImpl implements Simulation {
 										(String)nodeData.getAttributes().getValue(SimulationData.NM_CURRENT_STATE)));
 									nodeData.setB(simulationDatas.get(simnr).getBForState(
 										(String)nodeData.getAttributes().getValue(SimulationData.NM_CURRENT_STATE)));
+									nodeData.getAttributes().setValue(SimulationData.NM_STEPS_SINCE_STATE_CHANGE, 0);
 									nodeData.getAttributes().setValue(SimulationData.NM_CURRENT_LATENCY,
 										simulationDatas.get(simnr).getLatencyForState(
 											(String)nodeData.getAttributes().getValue(SimulationData.NM_CURRENT_STATE)));
@@ -211,6 +213,12 @@ public class SimulationImpl implements Simulation {
 					AttributeOrigin.DATA, defaultState);
 		else for (Node node : gc.getModel(workspaces[0]).getGraph().getNodes())
 			node.getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_STATE, simulationDatas.get(simnr).getDefaultState());
+		if (!networkAttributeModel.getNodeTable().hasColumn(SimulationDataImpl.NM_STEPS_SINCE_STATE_CHANGE))
+			networkAttributeModel.getNodeTable().addColumn(SimulationDataImpl.NM_STEPS_SINCE_STATE_CHANGE,
+					SimulationData.NM_STEPS_SINCE_STATE_CHANGE_TITLE, AttributeType.INT,
+					AttributeOrigin.DATA, 0);
+		else for (Node node : gc.getModel(workspaces[0]).getGraph().getNodes())
+			node.getNodeData().getAttributes().setValue(SimulationData.NM_STEPS_SINCE_STATE_CHANGE, 0);
 		if (!networkAttributeModel.getNodeTable().hasColumn(SimulationDataImpl.NM_CURRENT_LATENCY))
 			networkAttributeModel.getNodeTable().addColumn(SimulationDataImpl.NM_CURRENT_LATENCY,
 					SimulationData.NM_CURRENT_LATENCY_TITLE, AttributeType.INT,
@@ -386,15 +394,17 @@ public class SimulationImpl implements Simulation {
 			throw new IllegalArgumentException("Count must be greater than 0.");
 
 		Map<Node, String> nsmap = new HashMap<Node, String>();
+		Map<Node, Integer> nsstpmap = new HashMap<Node, Integer>();
 		Map<Node, Integer> nlatmap = new HashMap<Node, Integer>();
 		Map<Node, String> nlocmap = new HashMap<Node, String>();
-		Map<Node, Integer> nstpmap = new HashMap<Node, Integer>();
+		Map<Node, Integer> nlocstpmap = new HashMap<Node, Integer>();
 		for (Node node : gc.getModel(workspaces[0]).getGraph().getNodes()) {
 			nsmap.put(node, (String)node.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_STATE));
+			nsstpmap.put(node, (Integer)node.getNodeData().getAttributes().getValue(SimulationData.NM_STEPS_SINCE_STATE_CHANGE));
 			nlatmap.put(node, (Integer)node.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_LATENCY));
 			if (nodesLocations) {
 				nlocmap.put(node, (String)node.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_LOCATION));
-				nstpmap.put(node, (Integer)node.getNodeData().getAttributes().getValue(SimulationData.NM_STEPS_TO_CHANGE_LOCATION));
+				nlocstpmap.put(node, (Integer)node.getNodeData().getAttributes().getValue(SimulationData.NM_STEPS_TO_CHANGE_LOCATION));
 			}
 		}
 
@@ -410,10 +420,11 @@ public class SimulationImpl implements Simulation {
 					nextStep();
 				for (Node node : gc.getModel(workspaces[0]).getGraph().getNodes()) {
 					node.getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_STATE, nsmap.get(node));
+					node.getNodeData().getAttributes().setValue(SimulationData.NM_STEPS_SINCE_STATE_CHANGE, nsstpmap.get(node));
 					node.getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_LATENCY, nlatmap.get(node));
 					if (nodesLocations) {
 						node.getNodeData().getAttributes().setValue(SimulationData.NM_CURRENT_LOCATION, nlocmap.get(node));
-						node.getNodeData().getAttributes().setValue(SimulationData.NM_STEPS_TO_CHANGE_LOCATION, nstpmap.get(node));
+						node.getNodeData().getAttributes().setValue(SimulationData.NM_STEPS_TO_CHANGE_LOCATION, nlocstpmap.get(node));
 					}
 				}
 				if (cancel) {
@@ -523,6 +534,10 @@ public class SimulationImpl implements Simulation {
 			newStates.put(nmNode, state);
 		}
 		for (Node nmNode : nodesForCurrentStep) {
+			Integer steps = (Integer)nmNode.getNodeData().getAttributes().getValue(SimulationData.NM_STEPS_SINCE_STATE_CHANGE);
+			steps++;
+			nmNode.getNodeData().getAttributes().setValue(SimulationData.NM_STEPS_SINCE_STATE_CHANGE, steps);
+			
 			Integer latency = (Integer)nmNode.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_LATENCY);
 			latency--;
 			if (latency < 0)
