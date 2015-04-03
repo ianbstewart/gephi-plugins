@@ -43,13 +43,9 @@ package org.gephi.complexstatistics.plugin;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.HashMap;
-import java.util.Stack;
 import org.gephi.data.attributes.api.AttributeModel;
-import org.gephi.data.attributes.api.AttributeType;
 import org.gephi.graph.api.GraphModel;
 import org.gephi.graph.api.HierarchicalGraph;
-import org.gephi.graph.api.Node;
 import org.gephi.statistics.spi.Statistics;
 import org.gephi.utils.longtask.spi.LongTask;
 import org.gephi.utils.progress.Progress;
@@ -62,7 +58,7 @@ import org.gephi.utils.progress.ProgressTicket;
  */
 public class ReachMetric implements Statistics, LongTask {
 	private final String COLUMN_NAME = "dset";
-	private boolean cancel = false;
+	private Boolean cancel = false;
 	private ProgressTicket progressTicket;
 	private double value = 0.0;
 
@@ -79,79 +75,13 @@ public class ReachMetric implements Statistics, LongTask {
 	private void calculateValue(HierarchicalGraph graph, AttributeModel attributeModel) {
 		cancel = false;
 
-		int size = 0;
-
 		graph.readLock();
 
 		int n = graph.getNodeCount();
 		Progress.start(progressTicket, n + n * n + n * n + n + n + n);
 
-		Node[] nodes = graph.getNodes().toArray();
-		boolean[] inset = new boolean[n];
-		if (attributeModel.getNodeTable().hasColumn(COLUMN_NAME) && attributeModel.getNodeTable().getColumn(COLUMN_NAME).
-				getType().equals(AttributeType.BOOLEAN)) {
-			for (int i = 0; i < n && !cancel; i++) {
-				Object val = nodes[i].getNodeData().getAttributes().getValue(COLUMN_NAME);
-				if (val != null && Boolean.valueOf(val.toString())) {
-					inset[i] = true;
-					size++;
-				}
-				Progress.progress(progressTicket);
-			}
-		}
-
-		// FloydWarshall algorithm
-		double[][] d = new double[n][n];
-		for (int i = 0; i < n && !cancel; i++) {
-			for (int j = 0; j < n && !cancel; j++) {
-				if (i == j) {
-					d[i][j] = 0.0;
-				}
-				else if (graph.isAdjacent(nodes[i], nodes[j])) {
-					d[i][j] = 1.0;
-				}
-				else {
-					d[i][j] = Double.POSITIVE_INFINITY;
-				}
-				Progress.progress(progressTicket);
-			}
-		}
-		for (int k = 0; k < n && !cancel; k++) {
-			for (int i = 0; i < n && !cancel; i++) {
-				for (int j = 0; j < n && !cancel; j++) {
-					d[i][j] = Math.min(d[i][j], d[i][k] + d[k][j]);
-				}
-				Progress.progress(progressTicket);
-			}
-		}
-
-		double[] dset = new double[n];
-		for (int i = 0; i < n && !cancel; i++) {
-			dset[i] = Double.POSITIVE_INFINITY;
-			Progress.progress(progressTicket);
-		}
-		for (int i = 0; i < n && !cancel; i++) {
-			if (!inset[i]) {
-				for (int j = 0; j < n && !cancel; j++) {
-					if (inset[j]) {
-						if (d[i][j] < dset[i])
-							dset[i] = d[i][j];
-					}
-				}
-			}
-			else {
-				dset[i] = 0;
-			}
-			Progress.progress(progressTicket);
-		}
-
-		double sum = 0.0;
-		for (int j = 0; j < n && !cancel; j++) {
-			if (!inset[j])
-				sum += 1 / dset[j];
-			Progress.progress(progressTicket);
-		}
-		value = sum / (n - size);
+		double[][] d = Utils.floydWarshall(graph, cancel, progressTicket);
+		value = Utils.reachMetric(graph, attributeModel, COLUMN_NAME, d, cancel, progressTicket);
 
 		graph.readUnlock();
 	}

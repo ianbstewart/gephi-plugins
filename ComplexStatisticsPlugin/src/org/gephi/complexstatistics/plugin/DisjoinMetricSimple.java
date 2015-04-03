@@ -43,12 +43,9 @@ package org.gephi.complexstatistics.plugin;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.HashMap;
-import java.util.Stack;
 import org.gephi.data.attributes.api.AttributeModel;
 import org.gephi.graph.api.GraphModel;
 import org.gephi.graph.api.HierarchicalGraph;
-import org.gephi.graph.api.Node;
 import org.gephi.statistics.spi.Statistics;
 import org.gephi.utils.longtask.spi.LongTask;
 import org.gephi.utils.progress.Progress;
@@ -60,7 +57,7 @@ import org.gephi.utils.progress.ProgressTicket;
  * @author Cezary Bartosiak
  */
 public class DisjoinMetricSimple implements Statistics, LongTask {
-	private boolean cancel = false;
+	private Boolean cancel = false;
 	private ProgressTicket progressTicket;
 	private double value = 0.0;
 
@@ -77,51 +74,14 @@ public class DisjoinMetricSimple implements Statistics, LongTask {
 	private void calculateValue(HierarchicalGraph graph) {
 		cancel = false;
 
-		int count = 0;
-
 		graph.readLock();
 
 		int n = graph.getNodeCount();
 		Progress.start(progressTicket, n);
 
-		int index = 0;
-		HashMap<Node, Integer> indices = new HashMap<Node, Integer>();
-		for (Node node : graph.getNodes()) {
-			if (cancel) {
-				break;
-			}
-			indices.put(node, index++);
-		}
-
-		boolean[] visited = new boolean[n];
-		for (Node node : graph.getNodes()) {
-			if (cancel) {
-				break;
-			}
-			if (!visited[indices.get(node)]) {
-				Stack<Node> stack = new Stack<Node>();
-				stack.push(node);
-				while (!stack.empty()) {
-					if (cancel) {
-						break;
-					}
-					Progress.progress(progressTicket);
-					Node v = stack.pop();
-					visited[indices.get(v)] = true;
-					for (Node w : graph.getNeighbors(v)) {
-						if (cancel) {
-							break;
-						}
-						if (!visited[indices.get(w)]) {
-							stack.push(w);
-						}
-					}
-				}
-				count++;
-			}
-		}
-		
-		value = (double)count / graph.getNodeCount();
+		int[] componentIndex = new int[n];
+		int count = Utils.connectedComponents(graph, componentIndex, cancel, progressTicket);
+		value = Utils.disjoinMetricSimple(n, count);
 
 		graph.readUnlock();
 	}

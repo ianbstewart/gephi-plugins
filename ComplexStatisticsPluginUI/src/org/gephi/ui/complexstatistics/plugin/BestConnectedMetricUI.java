@@ -39,86 +39,70 @@
  *
  * Portions Copyrighted 2011 Gephi Consortium.
  */
-package org.gephi.complexstatistics.plugin;
+package org.gephi.ui.complexstatistics.plugin;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import org.gephi.data.attributes.api.AttributeModel;
-import org.gephi.graph.api.GraphModel;
-import org.gephi.graph.api.HierarchicalGraph;
+import javax.swing.JPanel;
+import org.gephi.complexstatistics.plugin.BestConnectedMetric;
 import org.gephi.statistics.spi.Statistics;
-import org.gephi.utils.longtask.spi.LongTask;
-import org.gephi.utils.progress.Progress;
-import org.gephi.utils.progress.ProgressTicket;
+import org.gephi.statistics.spi.StatisticsUI;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * 
  *
  * @author Cezary Bartosiak
  */
-public class DisjoinMetricDistance implements Statistics, LongTask {
-	private Boolean cancel = false;
-	private ProgressTicket progressTicket;
+@ServiceProvider(service = StatisticsUI.class)
+public class BestConnectedMetricUI implements StatisticsUI {
+	private BestConnectedMetricPanel panel;
+	private BestConnectedMetric bc;
 
-	private double value = 0.0;
-
-	private boolean isDirected = false;
-
-	public void execute(GraphModel graphModel, AttributeModel attributeModel) {
-		HierarchicalGraph graph = null;
-		if (isDirected)
-			graph = graphModel.getHierarchicalDirectedGraphVisible();
-		else graph = graphModel.getHierarchicalUndirectedGraphVisible();
-		execute(graph, attributeModel);
+	public JPanel getSettingsPanel() {
+		if (panel == null)
+			panel = new BestConnectedMetricPanel();
+		return panel;
 	}
 
-	public void execute(HierarchicalGraph graph, AttributeModel attributeModel) {
-		cancel = false;
-
-		value = 0.0;
-
-		graph.readLock();
-
-		int n = graph.getNodeCount();
-		Progress.start(progressTicket, n * n + n * n + n * n);
-
-		double[][] d = Utils.floydWarshall(graph, cancel, progressTicket);
-		value = Utils.disjoinMetricDistance(n, d, cancel, progressTicket);
-
-		graph.readUnlock();
+	public void setup(Statistics statistics) {
+		bc = (BestConnectedMetric)statistics;
+		
+		if (panel == null)
+			panel = new BestConnectedMetricPanel();
+			
+		panel.setMetrics(bc.getMetrics());
+		panel.setK(bc.getK());
+		panel.setEpsilon(bc.getEpsilon());
+		panel.setMetric(bc.getMetric());
 	}
 
-	public void setDirected(boolean isDirected) {
-		this.isDirected = isDirected;
+	public void unsetup() {
+		bc.setK(panel.getK());
+		bc.setEpsilon(panel.getEpsilon());
+		bc.setMetric(panel.getMetric());
+		panel = null;
 	}
 
-	public boolean isDirected() {
-		return isDirected;
+	public Class<? extends Statistics> getStatisticsClass() {
+		return BestConnectedMetric.class;
 	}
 
-	public double getValue() {
-		return value;
+	public String getValue() {
+		return "";
 	}
 
-	public String getReport() {
-		NumberFormat f = new DecimalFormat("#0.0000");
-
-		String report = "<html><body><h1>Disjoin Metric \"Distance\" Report</h1>"
-						+ "<hr>"
-						+ "<br>"
-						+ "<br><h2>Results:</h2>"
-						+ "Disjoin Metric  \"Distance\": " + f.format(value)
-						+ "</body></html>";
-
-		return report;
+	public String getDisplayName() {
+		return "Best Connected Metric";
 	}
 
-	public boolean cancel() {
-		cancel = true;
-		return true;
+	public String getShortDescription() {
+		return "Best Connected Metric";
 	}
 
-	public void setProgressTicket(ProgressTicket progressTicket) {
-		this.progressTicket = progressTicket;
+	public String getCategory() {
+		return StatisticsUI.CATEGORY_NETWORK_OVERVIEW;
+	}
+
+	public int getPosition() {
+		return 8;
 	}
 }

@@ -39,86 +39,30 @@
  *
  * Portions Copyrighted 2011 Gephi Consortium.
  */
-package org.gephi.complexstatistics.plugin;
+package org.gephi.complexstatistics.plugin.builder;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import org.gephi.data.attributes.api.AttributeModel;
-import org.gephi.graph.api.GraphModel;
-import org.gephi.graph.api.HierarchicalGraph;
+import org.gephi.complexstatistics.plugin.BestConnectedMetric;
 import org.gephi.statistics.spi.Statistics;
-import org.gephi.utils.longtask.spi.LongTask;
-import org.gephi.utils.progress.Progress;
-import org.gephi.utils.progress.ProgressTicket;
+import org.gephi.statistics.spi.StatisticsBuilder;
+import org.openide.util.NbBundle;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * 
  *
  * @author Cezary Bartosiak
  */
-public class DisjoinMetricDistance implements Statistics, LongTask {
-	private Boolean cancel = false;
-	private ProgressTicket progressTicket;
-
-	private double value = 0.0;
-
-	private boolean isDirected = false;
-
-	public void execute(GraphModel graphModel, AttributeModel attributeModel) {
-		HierarchicalGraph graph = null;
-		if (isDirected)
-			graph = graphModel.getHierarchicalDirectedGraphVisible();
-		else graph = graphModel.getHierarchicalUndirectedGraphVisible();
-		execute(graph, attributeModel);
+@ServiceProvider(service=StatisticsBuilder.class)
+public class BestConnectedMetricBuilder implements StatisticsBuilder {
+	public String getName() {
+		return NbBundle.getMessage(BestConnectedMetricBuilder.class, "BestConnectedMetric.name");
 	}
 
-	public void execute(HierarchicalGraph graph, AttributeModel attributeModel) {
-		cancel = false;
-
-		value = 0.0;
-
-		graph.readLock();
-
-		int n = graph.getNodeCount();
-		Progress.start(progressTicket, n * n + n * n + n * n);
-
-		double[][] d = Utils.floydWarshall(graph, cancel, progressTicket);
-		value = Utils.disjoinMetricDistance(n, d, cancel, progressTicket);
-
-		graph.readUnlock();
+	public Statistics getStatistics() {
+		return new BestConnectedMetric();
 	}
 
-	public void setDirected(boolean isDirected) {
-		this.isDirected = isDirected;
-	}
-
-	public boolean isDirected() {
-		return isDirected;
-	}
-
-	public double getValue() {
-		return value;
-	}
-
-	public String getReport() {
-		NumberFormat f = new DecimalFormat("#0.0000");
-
-		String report = "<html><body><h1>Disjoin Metric \"Distance\" Report</h1>"
-						+ "<hr>"
-						+ "<br>"
-						+ "<br><h2>Results:</h2>"
-						+ "Disjoin Metric  \"Distance\": " + f.format(value)
-						+ "</body></html>";
-
-		return report;
-	}
-
-	public boolean cancel() {
-		cancel = true;
-		return true;
-	}
-
-	public void setProgressTicket(ProgressTicket progressTicket) {
-		this.progressTicket = progressTicket;
+	public Class<? extends Statistics> getStatisticsClass() {
+		return BestConnectedMetric.class;
 	}
 }

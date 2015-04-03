@@ -80,11 +80,11 @@ public class ReachMetricUI implements StatisticsUI {
 	}
 
 	public String getDisplayName() {
-		return "ReachMetric";
+		return "Reach Metric";
 	}
 
 	public String getShortDescription() {
-		return "ReachMetric";
+		return "Reach Metric";
 	}
 
 	public String getCategory() {
