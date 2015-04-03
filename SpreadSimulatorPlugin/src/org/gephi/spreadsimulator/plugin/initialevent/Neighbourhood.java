@@ -20,13 +20,17 @@
  */
 package org.gephi.spreadsimulator.plugin.initialevent;
 
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
 import org.gephi.graph.api.Node;
 import org.gephi.spreadsimulator.api.SimulationData;
 import org.gephi.spreadsimulator.spi.InitialEvent;
 import org.gephi.spreadsimulator.spi.TransitionAlgorithm;
 
 /**
- * 
+ *
  *
  * @author Cezary Bartosiak
  */
@@ -38,14 +42,38 @@ public class Neighbourhood implements InitialEvent {
 		states = params.split(",");
 		algorithm = new NeighbourhoodAlgorithm(states);
 	}
-	
+
 	@Override
 	public boolean isOccuring(SimulationData simulationData) {
 		Node ceNode = simulationData.getCurrentlyExaminedNode();
-		for (Node node : simulationData.getNetworkModel().getGraph().getNeighbors(ceNode).toArray())
-			for (String state : states)
-				if (state.equals(node.getNodeData().getAttributes().getValue(simulationData.NM_CURRENT_STATE))) 
+		String ceLocation = (String)ceNode.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_LOCATION);
+		List<Node> neighbors = new LinkedList<Node>();
+		for (Node node: simulationData.getSnapshotGraphForCurrentStep().getNeighbors(ceNode)) {
+			String location = (String)node.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_LOCATION);
+			if (!simulationData.isNodesLocations() || ceLocation.equals(location)) {
+				neighbors.add(node);
+			}
+		}
+		if (simulationData.isEdgesActivation()) {
+			int min = simulationData.getMinActivatedEdges();
+			int max = simulationData.getMaxActivatedEdges();
+			int x = new Random().nextInt(max - min + 1) + min;
+			if (x < neighbors.size()) {
+				int y = neighbors.size() - x;
+				Collections.shuffle(neighbors);
+				while (y > 0) {
+					neighbors.remove(0);
+					y--;
+				}
+			}
+		}
+		for (Node node: neighbors) {
+			for (String state: states) {
+				if (state.equals(node.getNodeData().getAttributes().getValue(simulationData.NM_CURRENT_STATE))) {
 					return true;
+				}
+			}
+		}
 		return false;
 	}
 

@@ -20,15 +20,19 @@
  */
 package org.gephi.spreadsimulator.plugin.initialevent;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Node;
 import org.gephi.spreadsimulator.api.SimulationData;
 import org.gephi.spreadsimulator.spi.TransitionAlgorithm;
 
 /**
- * 
+ *
  *
  * @author Cezary Bartosiak
  */
@@ -44,10 +48,11 @@ public class NeighbourhoodAlgorithm implements TransitionAlgorithm {
 		Node ceNode = simulationData.getCurrentlyExaminedNode();
 		String ceLocation = (String)ceNode.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_LOCATION);
 		List<Node> neighbors = new LinkedList<Node>();
-		for (Node node : simulationData.getSnapshotGraphForCurrentStep().getNeighbors(ceNode)) {
+		for (Node node: simulationData.getSnapshotGraphForCurrentStep().getNeighbors(ceNode)) {
 			String location = (String)node.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_LOCATION);
-			if (!simulationData.isNodesLocations() || ceLocation.equals(location))
+			if (!simulationData.isNodesLocations() || ceLocation.equals(location)) {
 				neighbors.add(node);
+			}
 		}
 		if (simulationData.isEdgesActivation()) {
 			int min = simulationData.getMinActivatedEdges();
@@ -62,20 +67,23 @@ public class NeighbourhoodAlgorithm implements TransitionAlgorithm {
 				}
 			}
 		}
-		for (Node node : neighbors) {
+		for (Node node: neighbors) {
 			double quality = 1.0;
-			if (simulationData.isNodesQualities())
+			if (simulationData.isNodesQualities()) {
 				quality = (Double)node.getNodeData().getAttributes().getValue(SimulationData.NM_QUALITY);
-			for (String state : states)
+			}
+			for (String state: states) {
 				if (state.equals(node.getNodeData().getAttributes().getValue(SimulationData.NM_CURRENT_STATE))) {
 					double p = new Random().nextDouble();
 					double sum = 0.0;
-					for (Entry<Edge, Double> prob : probs.entrySet()) {
+					for (Entry<Edge, Double> prob: probs.entrySet()) {
 						sum += prob.getValue() * quality;
-						if (p <= sum)
+						if (p <= sum) {
 							return prob.getKey();
+						}
 					}
 				}
+			}
 		}
 		return null;
 	}
