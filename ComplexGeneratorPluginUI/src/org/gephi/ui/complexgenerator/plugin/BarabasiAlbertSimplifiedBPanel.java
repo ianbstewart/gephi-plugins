@@ -71,7 +71,7 @@ public class BarabasiAlbertSimplifiedBPanel extends javax.swing.JPanel {
 			boolean result = false;
 
 			try {
-				Integer N = Integer.parseInt(innerPanel.NField.getText());
+				Long N = Long.parseLong(innerPanel.NField.getText());
 				Integer M = Integer.parseInt(innerPanel.MField.getText());
 				result = M <= N * (N - 1) / 2;
 			}
